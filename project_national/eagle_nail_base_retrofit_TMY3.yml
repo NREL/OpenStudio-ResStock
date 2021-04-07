@@ -1,0 +1,203 @@
+schema_version: 0.2
+stock_type: residential
+buildstock_directory: ../  # Relative to this file or absolute
+project_directory: project_national  # Relative to buildstock_directory
+output_directory: /scratch/afontani/attics/roof_upgrades_v0
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip  # Relative to this file or absolute path to zipped weather files
+baseline:
+  n_buildings_represented: 133172057 # ACS 5yr-2016
+  n_datapoints: 10
+  sampling_algorithm: quota
+residential_simulation_controls:
+  timesteps_per_hr: 4
+  begin_month: 1
+  begin_day_of_month: 1
+  end_month: 12
+  end_day_of_month: 31
+  calendar_year: 2018
+simulation_output:
+  include_enduse_subcategories: true
+timeseries_csv_export:
+  reporting_frequency: Timestep
+  include_enduse_subcategories: true 
+reporting_measures:
+  - QOIReport
+downselect: 
+  resample: False
+  logic:
+    - Geometry Building Type RECS|Single-Family Detached
+    - Vacancy Status|Occupied
+upgrades:
+  - upgrade_name: R-11 Roof Insulation
+    options:
+       - option: Insulation Unfinished Attic|Uninsulated, Vented, Roof R-11
+         apply_logic: Insulation Unfinished Attic|Uninsulated, Vented
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+       - option: Insulation Unfinished Attic|Ceiling R-7, Vented, Roof R-11
+         apply_logic: Insulation Unfinished Attic|Ceiling R-7, Vented
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+       - option: Insulation Unfinished Attic|Ceiling R-13, Vented, Roof R-11
+         apply_logic: Insulation Unfinished Attic|Ceiling R-13, Vented
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+       - option: Insulation Unfinished Attic|Ceiling R-19, Vented, Roof R-11
+         apply_logic: Insulation Unfinished Attic|Ceiling R-19, Vented
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+       - option: Insulation Unfinished Attic|Ceiling R-30, Vented, Roof R-11
+         apply_logic: Insulation Unfinished Attic|Ceiling R-30, Vented
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+       - option: Insulation Unfinished Attic|Ceiling R-38, Vented, Roof R-11
+         apply_logic: Insulation Unfinished Attic|Ceiling R-38, Vented
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+       - option: Insulation Unfinished Attic|Ceiling R-49, Vented, Roof R-11
+         apply_logic: Insulation Unfinished Attic|Ceiling R-49, Vented
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+         
+  - upgrade_name: Cool Roof Tiles
+    options:
+       - option: Roof Material Unfinished Attic|Asphalt Shingles, White or cool colors
+         apply_logic: Roof Material Unfinished Attic|Asphalt Shingles, Medium
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+       - option: Roof Material Unfinished Attic|Composition Shingles, White or Cool Colors
+         apply_logic: Roof Material Unfinished Attic|Composition Shingles
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+       - option: Roof Material Unfinished Attic|Metal, White
+         apply_logic: Roof Material Unfinished Attic|Metal, Light
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+       - option: Roof Material Unfinished Attic|Tile, Clay or Ceramic, White or Cool Colors
+         apply_logic: Roof Material Unfinished Attic|Tile, Clay or Ceramic
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+       - option: Roof Material Unfinished Attic|Tile, Concrete, White or Cool Colors
+         apply_logic: Roof Material Unfinished Attic|Tile, Concrete
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+
+  - upgrade_name: R11 Roof Insulation and Cool Roof Tiles
+    options:
+       - option: Roof Material Unfinished Attic|Asphalt Shingles, White or cool colors
+         apply_logic: Roof Material Unfinished Attic|Asphalt Shingles, Medium
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+       - option: Roof Material Unfinished Attic|Composition Shingles, White or Cool Colors
+         apply_logic: Roof Material Unfinished Attic|Composition Shingles
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+       - option: Roof Material Unfinished Attic|Metal, White
+         apply_logic: Roof Material Unfinished Attic|Metal, Light
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+       - option: Roof Material Unfinished Attic|Tile, Clay or Ceramic, White or Cool Colors
+         apply_logic: Roof Material Unfinished Attic|Tile, Clay or Ceramic
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+       - option: Roof Material Unfinished Attic|Tile, Concrete, White or Cool Colors
+         apply_logic: Roof Material Unfinished Attic|Tile, Concrete
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+       - option: Insulation Unfinished Attic|Uninsulated, Vented, Roof R-11
+         apply_logic: Insulation Unfinished Attic|Uninsulated, Vented
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+       - option: Insulation Unfinished Attic|Ceiling R-7, Vented, Roof R-11
+         apply_logic: Insulation Unfinished Attic|Ceiling R-7, Vented
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+       - option: Insulation Unfinished Attic|Ceiling R-13, Vented, Roof R-11
+         apply_logic: Insulation Unfinished Attic|Ceiling R-13, Vented
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+       - option: Insulation Unfinished Attic|Ceiling R-19, Vented, Roof R-11
+         apply_logic: Insulation Unfinished Attic|Ceiling R-19, Vented
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+       - option: Insulation Unfinished Attic|Ceiling R-30, Vented, Roof R-11
+         apply_logic: Insulation Unfinished Attic|Ceiling R-30, Vented
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+       - option: Insulation Unfinished Attic|Ceiling R-38, Vented, Roof R-11
+         apply_logic: Insulation Unfinished Attic|Ceiling R-38, Vented
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+       - option: Insulation Unfinished Attic|Ceiling R-49, Vented, Roof R-11
+         apply_logic: Insulation Unfinished Attic|Ceiling R-49, Vented
+         costs:
+           - value: 1.0
+             multiplier: Roof Area (ft^2)
+         lifetime: 999
+
+eagle:
+  n_jobs: 200
+  minutes_per_sim: 45
+  account: enduse
+  sampling:
+    time: 480  
+  postprocessing:
+    time: 480
+    n_workers: 44
+postprocessing:
+  aggregate_timeseries: false
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: resbldg-datasets
+      prefix: resstock-attics/national_runs
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: attics
+      max_crawling_time: 1000 #time to wait for the crawler to complete before aborting it

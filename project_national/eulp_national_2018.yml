@@ -1,0 +1,51 @@
+schema_version: '0.3'
+buildstock_directory: ../  # Relative to this file or absolute
+project_directory: project_national  # Relative to buildstock_directory
+output_directory: /projects/enduse/resstock_runs/res_national_58_2018 
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip  # Relative to this file or absolute path to zipped weather files
+
+baseline:
+  n_buildings_represented: 133172057 # ACS 5-yr 2016
+
+sampler:
+  type: residential_quota
+  args:
+    n_datapoints: 550000
+
+workflow_generator:
+  type: residential_default
+  args:
+    residential_simulation_controls:
+      timesteps_per_hr: 4
+      begin_month: 1
+      begin_day_of_month: 1
+      end_month: 12
+      end_day_of_month: 31
+      calendar_year: 2018
+    timeseries_csv_export:
+      reporting_frequency: Timestep
+      include_enduse_subcategories: true
+    reporting_measures:
+      - measure_dir_name: QOIReport
+
+eagle:
+  n_jobs: 200
+  minutes_per_sim: 3
+  account: enduse
+  sampling:
+    time: 60  
+  postprocessing:
+    time: 1439 
+    n_workers: 32
+
+
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: eulp
+      prefix: simulation_output/national_runs/resstock
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: enduse
+      max_crawling_time: 1000 #time to wait for the crawler to complete before aborting it

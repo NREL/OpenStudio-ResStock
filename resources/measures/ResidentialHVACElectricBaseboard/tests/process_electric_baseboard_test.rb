@@ -273,6 +273,7 @@ class ProcessElectricBaseboardTest < MiniTest::Test
 
         new_object = new_object.public_send("to_#{obj_type}").get
         next unless obj_type == 'ZoneHVACBaseboardConvectiveElectric'
+
         assert_in_epsilon(expected_values['Efficiency'], new_object.efficiency, 0.01)
         if new_object.nominalCapacity.is_initialized
           assert_in_epsilon(expected_values['NominalCapacity'], new_object.nominalCapacity.get, 0.01)

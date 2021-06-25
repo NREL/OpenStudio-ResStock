@@ -2039,6 +2039,7 @@ class HVACSizing
           valid_field_found = false
           valid_configs.keys.each do |bore_config|
             next unless valid_configs[bore_config].include? hvac.GSHPBoreHoles
+
             valid_field_found = true
             new_bore_config = bore_config
             break
@@ -2102,6 +2103,7 @@ class HVACSizing
 
         # Calculate the cooling design temperature for the unfinished attic based on Figure A12-14
         next unless Geometry.is_unfinished_attic(space)
+
         attic_floor_r = get_space_r_value(runner, space, 'floor', true)
         return nil if attic_floor_r.nil?
 
@@ -4149,6 +4151,7 @@ class HVACSizing
         end
 
         next unless dehum.ratedAirFlowRate == Constants.small # Autosized
+
         # Calculate the dehumidifier air flow rate by assuming 2.75 cfm/pint/day (based on experimental test data)
         air_flow_rate = UnitConversions.convert(water_removal_rate, 'L', 'pint') * UnitConversions.convert(2.75, 'cfm', 'm^3/s')
         dehum.setRatedAirFlowRate(air_flow_rate)

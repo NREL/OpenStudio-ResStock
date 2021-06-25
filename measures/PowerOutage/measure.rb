@@ -64,6 +64,45 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(24)
     args << arg
 
+    # Specify a Thermal Comfort Model type
+    # While none are required, up to 5 models may be specified at a time
+    # These get added to the People object in the idf
+    # If a comfort model is specified, additional schedules are required and get automatically generated below
+    chs = OpenStudio::StringVector.new
+    chs << "Pierce"
+    chs << "Fanger"
+    chs << "KSU"
+    chs << "AdaptiveASH55"
+    chs << "AdaptiveCEN15251"
+    arg = OpenStudio::Ruleset::OSArgument::makeChoiceArgument('comfort_model_1', chs, false)
+    arg.setDisplayName("Thermal Comfort Model type 1")
+    arg.setDescription("Thermal Comfort Model type")
+    args << arg
+
+    # Specify another Thermal Comfort Model type
+    arg = OpenStudio::Ruleset::OSArgument::makeChoiceArgument('comfort_model_2', chs, false)
+    arg.setDisplayName("Thermal Comfort Model type 2")
+    arg.setDescription("Thermal Comfort Model type")
+    args << arg
+
+    # Specify another Thermal Comfort Model type
+    arg = OpenStudio::Ruleset::OSArgument::makeChoiceArgument('comfort_model_3', chs, false)
+    arg.setDisplayName("Thermal Comfort Model type 3")
+    arg.setDescription("Thermal Comfort Model type")
+    args << arg
+
+    # Specify another Thermal Comfort Model type
+    arg = OpenStudio::Ruleset::OSArgument::makeChoiceArgument('comfort_model_4', chs, false)
+    arg.setDisplayName("Thermal Comfort Model type 4")
+    arg.setDescription("Thermal Comfort Model type")
+    args << arg
+
+    # Specify another Thermal Comfort Model type
+    arg = OpenStudio::Ruleset::OSArgument::makeChoiceArgument('comfort_model_5', chs, false)
+    arg.setDisplayName("Thermal Comfort Model type 5")
+    arg.setDescription("Thermal Comfort Model type")
+    args << arg
+
     return args
   end # end the arguments method
 
@@ -77,9 +116,14 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     end
 
     # assign the user inputs to variables
-    otg_date = runner.getStringArgumentValue('otg_date', user_arguments)
-    otg_hr = runner.getIntegerArgumentValue('otg_hr', user_arguments)
-    otg_len = runner.getIntegerArgumentValue('otg_len', user_arguments)
+    otg_date = runner.getStringArgumentValue("otg_date", user_arguments)
+    otg_hr = runner.getIntegerArgumentValue("otg_hr", user_arguments)
+    otg_len = runner.getIntegerArgumentValue("otg_len", user_arguments)
+    comfort_model_1 = runner.getOptionalStringArgumentValue("comfort_model_1", user_arguments)
+    comfort_model_2 = runner.getOptionalStringArgumentValue("comfort_model_2", user_arguments)
+    comfort_model_3 = runner.getOptionalStringArgumentValue("comfort_model_3", user_arguments)
+    comfort_model_4 = runner.getOptionalStringArgumentValue("comfort_model_4", user_arguments)
+    comfort_model_5 = runner.getOptionalStringArgumentValue("comfort_model_5", user_arguments)
 
     # check for valid inputs
     if (otg_hr < 0) || (otg_hr > 23)
@@ -137,7 +181,7 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     otg_end_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(otg_period_end.month), otg_period_end.day, otg_period_end.year)
 
     model.getScheduleRulesets.each do |schedule_ruleset|
-      next if schedule_ruleset.name.to_s.include?('shading') || schedule_ruleset.name.to_s.include?('Schedule Ruleset') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameOccupants) || schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) || schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint)
+      next if schedule_ruleset.name.to_s.include?('shading') || schedule_ruleset.name.to_s.include?('Schedule Ruleset') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameOccupants) || schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) || schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint) || schedule_ruleset.name.to_s.include?(Constants.ObjectNameNaturalVentilation) || schedule_ruleset.name.to_s.include?(Constants.SeasonCooling)
 
       otg_val = 0
       if otg_period_num_days <= 1 # occurs within one calendar day
@@ -155,7 +199,7 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
           end
         end
         set_rule_days_and_dates(otg_rule, otg_start_date, otg_start_date)
-      else # does not occur within on calendar day
+      else # does not occur within one calendar day
         (otg_start_date_day..otg_end_date_day).each do |day|
           day_date = OpenStudio::Date::fromDayOfYear(day, assumed_year)
           otg_rule = OpenStudio::Model::ScheduleRule.new(schedule_ruleset)
@@ -278,6 +322,56 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
 
     runner.registerFinalCondition("A power outage has been added, starting on #{otg_date} at hour #{otg_hr.to_i} and lasting for #{otg_len.to_i} hours.")
 
+    if comfort_model_1.is_initialized
+
+      # Create schedules
+
+      # Work
+      work_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+      work_schedule.setValue(0)
+      work_schedule.setName("Work Efficiency Schedule")
+
+      # Activity
+      activity_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+      activity_schedule.setValue(100)
+      activity_schedule.setName("Activity Level Schedule")
+
+      # Air Velocity
+      air_velocity_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+      air_velocity_schedule.setValue(0.1)
+      air_velocity_schedule.setName("Air Velocity Schedule")
+
+      # Clothing Insulation
+      clothing_insulation_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+      clothing_insulation_schedule.setValue(0.6)
+      clothing_insulation_schedule.setName("Clothing Schedule")
+
+      model.getPeoples.each do |people|
+        # Set schedules
+        people.setWorkEfficiencySchedule(work_schedule)
+        people.setActivityLevelSchedule(activity_schedule)
+        people.setAirVelocitySchedule(air_velocity_schedule)
+        people.setClothingInsulationSchedule(clothing_insulation_schedule)
+
+        people_definition = people.peopleDefinition
+
+        # Add thermal model types
+        people_definition.pushThermalComfortModelType(comfort_model_1.get)
+        if comfort_model_2.is_initialized
+          people_definition.pushThermalComfortModelType(comfort_model_2.get)
+        end
+        if comfort_model_3.is_initialized
+          people_definition.pushThermalComfortModelType(comfort_model_3.get)
+        end
+        if comfort_model_4.is_initialized
+          people_definition.pushThermalComfortModelType(comfort_model_4.get)
+        end
+        if comfort_model_5.is_initialized
+          people_definition.pushThermalComfortModelType(comfort_model_5.get)
+        end
+      end
+    end
+
     return true
   end # end the run method
 
@@ -294,5 +388,5 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
   end
 end # end the measure
 
-# this allows the measure to be use by the application
+# this allows the measure to be used by the application
 ProcessPowerOutage.new.registerWithApplication

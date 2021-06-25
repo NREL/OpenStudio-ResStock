@@ -368,6 +368,7 @@ class ProcessBoilerTest < MiniTest::Test
 
         new_object = new_object.public_send("to_#{obj_type}").get
         next unless obj_type == 'BoilerHotWater'
+
         assert_in_epsilon(expected_values['Efficiency'], new_object.nominalThermalEfficiency, 0.01)
         assert_equal(HelperMethods.eplus_fuel_map(expected_values['FuelType']), new_object.fuelType)
         if new_object.nominalCapacity.is_initialized

@@ -1,0 +1,331 @@
+schema_version: '0.3'
+buildstock_directory: /home/nmoore/github/resstock
+project_directory: project_national
+output_directory: /projects/resilience/test_houston_2010
+weather_files_path: resilience_weather/houston_2010.zip
+
+eagle:
+  n_jobs: 1
+  minutes_per_sim: 4
+  account: resilience
+  sampling:
+    time: 10
+  postprocessing:
+    time: 10
+    n_workers: 1
+
+sampler:
+  type: residential_quota_downselect
+  args:
+    n_datapoints: 500
+    resample: false
+    logic:
+      - Geometry Building Type ACS|Single-Family Detached
+      - Vacancy Status|Occupied
+      - County|TX, Harris County
+
+workflow_generator:
+  type: residential_default
+  args:
+    timeseries_csv_export:
+      output_variables:
+        Site Outdoor Air Drybulb Temperature, Zone Mean Air Temperature, Zone Air Relative Humidity, Zone Thermal Comfort Pierce Model Standard Effective Temperature
+      reporting_frequency: Hourly
+      include_enduse_subcategories: true
+    residential_simulation_controls:
+      calendar_year: 2010
+    measures:
+      - measure_dir_name: PowerOutage
+        arguments:
+          otg_date: January 1
+          otg_hr: 6
+          otg_len: 300
+          comfort_model_1: Pierce
+    reporting_measures:
+      - measure_dir_name: ResilienceMetricsReport
+
+baseline:
+  n_buildings_represented: 133172057
+
+upgrades:
+  - upgrade_name: PHIUS cz 2
+    options:
+      - option: Insulation Slab|R20 Whole Slab, R5 Gap
+        apply_logic: Geometry Foundation Type|Slab
+      - option: Insulation Crawlspace|Wall R-17, Unvented
+        apply_logic: Geometry Foundation Type|Crawl
+      - option: Insulation Unfinished Basement|Wall R-17
+        apply_logic: Geometry Foundation Type|Unheated Basement
+      - option: Insulation Finished Basement|Wall R-17
+        apply_logic: Geometry Foundation Type|Heated Basement
+      - option: Insulation Wall|Wood Stud, R-19, R-5 Sheathing
+      - option: Infiltration|0.5 ACH50
+      - option: Mechanical Ventilation|ERV, 60%, 2010 ASHRAE 62.2
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+      - option: Windows|Low-E, Triple, Non-metal, Air, L-Gain
+  - upgrade_name: Air Leakage 25% reduction
+    options:
+      - option: Infiltration|18.5 ACH50
+        apply_logic: Infiltration|25 ACH50
+        costs:
+          - value: 1.488
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|15 ACH50
+        apply_logic: Infiltration|20 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|11.25 ACH50
+        apply_logic: Infiltration|15 ACH50
+        costs:
+          - value: 0.9
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|7.5 ACH50
+        apply_logic: Infiltration|10 ACH50
+        costs:
+          - value: 0.625
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+  - upgrade_name: Air Leakage 25% reduction, with mech. vent.
+    options:
+      - option: Infiltration|6 ACH50
+        apply_logic: Infiltration|8 ACH50
+        costs:
+          - value: 0
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|5.25 ACH50
+        apply_logic: Infiltration|7 ACH50
+        costs:
+          - value: 0
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|4.5 ACH50
+        apply_logic: Infiltration|6 ACH50
+        costs:
+          - value: 0
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|3.75 ACH50
+        apply_logic: Infiltration|5 ACH50
+        costs:
+          - value: 0
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|3 ACH50
+        apply_logic: Infiltration|4 ACH50
+        costs:
+          - value: 0
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|2.25 ACH50
+        apply_logic: Infiltration|3 ACH50
+        costs:
+          - value: 0
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|1.5 ACH50
+        apply_logic: Infiltration|2 ACH50
+        costs:
+          - value: 0
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: Mechanical Ventilation|None
+        costs:
+          - value: 0
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+    package_apply_logic: Infiltration|8 ACH50||Infiltration|7 ACH50||Infiltration|6 ACH50||Infiltration|5 ACH50||Infiltration|4 ACH50||Infiltration|3 ACH50||Infiltration|2 ACH50
+  - upgrade_name: R-60 Attic Insulation
+    options:
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Uninsulated, Vented
+        costs:
+          - value: 0
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-7, Vented
+        costs:
+          - value: 0
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-13, Vented
+        costs:
+          - value: 0
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-19, Vented
+        costs:
+          - value: 0
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-30, Vented
+        costs:
+          - value: 0
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+  - upgrade_name: R-15 Drill & Fill
+    options:
+      - option: Insulation Wall|Wood Stud, R-15
+        apply_logic: Insulation Wall|Wood Stud, Uninsulated||Insulation Wall|Wood Stud, R-7
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+  - upgrade_name: Low-E Storm Window
+    options:
+      - option: Windows|Low-E Storm on Single, Metal
+        apply_logic: Windows|1 Pane
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: Windows|Low-E Storm on Double, Non-metal
+        apply_logic: Windows|2+ Pane
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+  - upgrade_name: All Upgrades
+    options:
+      - option: Infiltration|18.5 ACH50
+        apply_logic: Infiltration|25 ACH50
+        costs:
+          - value: 1.488
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|15 ACH50
+        apply_logic: Infiltration|20 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|11.25 ACH50
+        apply_logic: Infiltration|15 ACH50
+        costs:
+          - value: 0.9
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|7.5 ACH50
+        apply_logic: Infiltration|10 ACH50
+        costs:
+          - value: 0.625
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|6 ACH50
+        apply_logic: Infiltration|8 ACH50
+        costs:
+          - value: 0
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|5.25 ACH50
+        apply_logic: Infiltration|7 ACH50
+        costs:
+          - value: 0
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|4.5 ACH50
+        apply_logic: Infiltration|6 ACH50
+        costs:
+          - value: 0
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|3.75 ACH50
+        apply_logic: Infiltration|5 ACH50
+        costs:
+          - value: 0
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|3 ACH50
+        apply_logic: Infiltration|4 ACH50
+        costs:
+          - value: 0
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|2.25 ACH50
+        apply_logic: Infiltration|3 ACH50
+        costs:
+          - value: 0
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|1.5 ACH50
+        apply_logic: Infiltration|2 ACH50
+        costs:
+          - value: 0
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      # - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+      #   apply_logic: Mechanical Ventilation|None
+      #   costs:
+      #     - value: 0
+      #       multiplier: Floor Area, Conditioned (ft^2)
+      #   lifetime: 999
+    # package_apply_logic: Infiltration|8 ACH50||Infiltration|7 ACH50||Infiltration|6 ACH50||Infiltration|5 ACH50||Infiltration|4 ACH50||Infiltration|3 ACH50||Infiltration|2 ACH50
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Uninsulated, Vented
+        costs:
+          - value: 0
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-7, Vented
+        costs:
+          - value: 0
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-13, Vented
+        costs:
+          - value: 0
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-19, Vented
+        costs:
+          - value: 0
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-30, Vented
+        costs:
+          - value: 0
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-15
+        apply_logic: Insulation Wall|Wood Stud, Uninsulated||Insulation Wall|Wood Stud, R-7
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: Windows|Low-E Storm on Single, Metal
+        apply_logic: Windows|1 Pane
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: Windows|Low-E Storm on Double, Non-metal
+        apply_logic: Windows|2+ Pane
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30

@@ -2403,6 +2403,7 @@ class Construction
     # Check if multiple materials in a given layer have differing thicknesses
     @layers_materials.each do |layer_materials|
       next unless layer_materials.size > 1
+
       thick_in = nil
       layer_materials.each do |mat|
         if thick_in.nil?

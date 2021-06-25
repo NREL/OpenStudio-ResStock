@@ -477,6 +477,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
 
         new_object = new_object.public_send("to_#{obj_type}").get
         next unless (obj_type == 'WaterHeaterMixed') || (obj_type == 'WaterHeaterStratified')
+
         actual_values['TankVolume'] += UnitConversions.convert(new_object.tankVolume.get, 'm^3', 'gal')
         actual_values['InputCapacity'] += UnitConversions.convert(new_object.heaterMaximumCapacity.get, 'W', 'kW')
         actual_values['ThermalEfficiency'] += new_object.heaterThermalEfficiency.get
@@ -488,8 +489,10 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
         assert_equal(HelperMethods.eplus_fuel_map(expected_values['FuelType']), new_object.heaterFuelType)
         actual_values['SkinLossFrac'] += new_object.offCycleLossFractiontoThermalZone
         next unless new_object.supplyInletModelObject.is_initialized
+
         inlet_object = new_object.supplyInletModelObject.get.connectedObject(new_object.supplyInletModelObject.get.to_Node.get.inletPort).get
         next unless inlet_object.to_WaterHeaterStratified.is_initialized
+
         storage_tank = inlet_object.to_WaterHeaterStratified.get
         setpoint_schedule_one = storage_tank.heater1SetpointTemperatureSchedule.to_ScheduleConstant.get
         setpoint_schedule_two = storage_tank.heater2SetpointTemperatureSchedule.to_ScheduleConstant.get

@@ -132,6 +132,7 @@ def retrieve_dp_data(local_results_dir, server_dns = nil, unzip = false)
 
     # Report out progress
     next unless i.to_f * 100 / dps.length >= report_at
+
     puts "INFO: Completed #{report_at}%; #{(Time.now - timestep).round}s"
     report_at += interval
     timestep = Time.now

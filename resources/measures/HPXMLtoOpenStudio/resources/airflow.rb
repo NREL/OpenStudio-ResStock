@@ -270,6 +270,7 @@ class Airflow
           pcm.name.to_s.start_with?(obj_name_infil) ||
           pcm.name.to_s.start_with?(obj_name_ducts) ||
           pcm.name.to_s.start_with?(obj_name_mech_vent))
+
       pcm.remove
     end
 
@@ -278,6 +279,7 @@ class Airflow
           sensor.name.to_s.start_with?(obj_name_natvent_underscore) ||
           sensor.name.to_s.start_with?(obj_name_infil_underscore) ||
           sensor.name.to_s.start_with?(obj_name_ducts_underscore))
+
       sensor.remove
     end
 
@@ -286,6 +288,7 @@ class Airflow
           actuator.name.to_s.start_with?(obj_name_natvent_underscore) ||
           actuator.name.to_s.start_with?(obj_name_infil_underscore) ||
           actuator.name.to_s.start_with?(obj_name_ducts_underscore))
+
       actuatedComponent = actuator.actuatedComponent
       if actuatedComponent.is_a? OpenStudio::Model::OptionalModelObject # 2.4.0 or higher
         actuatedComponent = actuatedComponent.get
@@ -306,6 +309,7 @@ class Airflow
           program.name.to_s.start_with?(obj_name_infil_underscore) ||
           program.name.to_s.start_with?(obj_name_ducts_underscore) ||
           program.name.to_s.start_with?(obj_name_mechvent_underscore))
+
       program.remove
     end
 
@@ -314,6 +318,7 @@ class Airflow
           subroutine.name.to_s.start_with?(obj_name_natvent_underscore) ||
           subroutine.name.to_s.start_with?(obj_name_infil_underscore) ||
           subroutine.name.to_s.start_with?(obj_name_ducts_underscore))
+
       subroutine.remove
     end
 
@@ -323,6 +328,7 @@ class Airflow
           ems_global_var.name.to_s.start_with?(obj_name_infil_underscore) ||
           ems_global_var.name.to_s.start_with?(obj_name_ducts_underscore) ||
           ems_global_var.name.to_s.start_with?(obj_name_mechvent_underscore))
+
       ems_global_var.remove
     end
 
@@ -332,6 +338,7 @@ class Airflow
           ems_internal_var.name.to_s.start_with?(obj_name_infil_underscore) ||
           ems_internal_var.name.to_s.start_with?(obj_name_ducts_underscore) ||
           ems_internal_var.name.to_s.start_with?(obj_name_mechvent_underscore))
+
       ems_internal_var.remove
     end
 
@@ -1373,9 +1380,50 @@ class Airflow
       end
     end
 
+    # Get minimum heating season setpoint
+    thermostatsetpointdualsetpoint = unit_living.zone.thermostatSetpointDualSetpoint
+    heatingSetpointWeekday = Array.new
+    heatingSetpointWeekend = Array.new
+
+    if thermostatsetpointdualsetpoint.is_initialized
+      thermostatsetpointdualsetpoint = thermostatsetpointdualsetpoint.get
+
+      heatingSetpointWeekday = HVAC.get_setpoint_schedule(thermostatsetpointdualsetpoint.heatingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get, 'weekday', runner)
+      heatingSetpointWeekend = HVAC.get_setpoint_schedule(thermostatsetpointdualsetpoint.heatingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get, 'weekend', runner)
+      if heatingSetpointWeekday.nil? or heatingSetpointWeekend.nil?
+        return false
+      end
+
+      min_htg_sp_wkdy = heatingSetpointWeekday.min.min
+      min_htg_sp_wknd = heatingSetpointWeekend.min.min
+      min_htg_sp = [min_htg_sp_wkdy, min_htg_sp_wknd].min
+    else
+      min_htg_sp = 21.6667 # default minimum value for EMS
+    end
+
     # Sensors
 
-    nvavail_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+    # Add a new sensor here for the outage schedule (otg_availability_schedule)
+    # Make sure there's actually an outage though...
+    has_outage = false
+    model.getScheduleRulesets.each do |schedule|
+      next unless schedule.name.to_s.include? 'outage'
+      has_outage = true
+    end
+
+    if has_outage
+      otg_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
+      otg_sensor.setName("#{obj_name_natvent} outage s")
+      otg_sensor.setKeyName("Outage Availability Schedule") # TODO: not hard coded
+
+      thermostatsetpointdualsetpoint = unit_living.zone.thermostatSetpointDualSetpoint
+
+      clg_season_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
+      clg_season_sensor.setName("res_clg_ssn")
+      clg_season_sensor.setKeyName("res cooling season")
+    end
+
+    nvavail_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
     nvavail_sensor.setName("#{obj_name_natvent} nva s")
     nvavail_sensor.setKeyName(avail_sch.name.to_s)
 
@@ -1409,7 +1457,14 @@ class Airflow
     nv_program.addLine("Set MRH = #{nat_vent.max_oa_rh}")
     nv_program.addLine("Set temp1 = (#{nvavail_sensor.name}*NVA)")
     nv_program.addLine("Set SGNV = temp1*((((Cs*dT)+(Cw*(#{vwind_sensor.name}^2)))^0.5)/1000)")
-    nv_program.addLine("If (#{wout_sensor.name}<MHR) && (pt<MRH) && (#{tin_sensor.name}>#{nvsp_sensor.name})")
+    if has_outage
+      nv_program.addLine("If ((#{otg_sensor.name} < 1) && (#{tin_sensor.name} > #{tout_sensor.name})) && (((#{tin_sensor.name} > #{nvsp_sensor.name}) || ((#{clg_season_sensor.name} > 0) && (#{tin_sensor.name} > #{min_htg_sp}))) )") # Recalculate airflow regardless of availability sensor if it's an outage
+      nv_program.addLine("  Set SGNV = NVA * ((((Cs*dT)+(Cw*(#{vwind_sensor.name}^2)))^0.5)/1000)") # Recalculate airflow regardless of availability sensor if it's an outage
+      nv_program.addLine("  Set #{natvent_flow_actuator.name} = @Min SGNV MNV")
+      nv_program.addLine("ElseIf (#{wout_sensor.name}<MHR) && (pt<MRH) && (#{tin_sensor.name}>#{nvsp_sensor.name})")
+    else
+      nv_program.addLine("If (#{wout_sensor.name}<MHR) && (pt<MRH) && (#{tin_sensor.name}>#{nvsp_sensor.name})")
+    end
     nv_program.addLine("  Set temp2 = (#{tin_sensor.name}-#{nvsp_sensor.name})")
     nv_program.addLine("  Set NVadj1 = temp2/(#{tin_sensor.name}-#{tout_sensor.name})")
     nv_program.addLine('  Set NVadj2 = (@Min NVadj1 1)')

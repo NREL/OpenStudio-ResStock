@@ -272,6 +272,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
           next if not space_equipment.name.to_s.start_with? Constants.ObjectNameShower
 
           next unless space_equipment.schedule.is_initialized
+
           # Check if there is a recirc pump referencing this schedule
           model.getElectricEquipments.each do |ee|
             next if ee.name.to_s != obj_name_recirc_pump

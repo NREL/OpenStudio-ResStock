@@ -416,6 +416,7 @@ class OSModel
     # Basements, crawl, garage
     thermal_zones.each do |thermal_zone|
       next unless Geometry.is_finished_basement(thermal_zone) || Geometry.is_unfinished_basement(thermal_zone) || Geometry.is_crawl(thermal_zone) || Geometry.is_garage(thermal_zone)
+
       zones_updated += 1
 
       zone_volume = Geometry.get_height_of_spaces(thermal_zone.spaces) * Geometry.get_floor_area_from_spaces(thermal_zone.spaces)
@@ -433,6 +434,7 @@ class OSModel
     # Conditioned living
     thermal_zones.each do |thermal_zone|
       next unless Geometry.is_living(thermal_zone)
+
       zones_updated += 1
 
       if living_volume <= 0
@@ -445,6 +447,7 @@ class OSModel
     # Attic
     thermal_zones.each do |thermal_zone|
       next unless Geometry.is_unfinished_attic(thermal_zone)
+
       zones_updated += 1
 
       zone_surfaces = []
@@ -1118,6 +1121,7 @@ class OSModel
       end
       addtl_ffa = floor_area - ceiling_area
       next unless addtl_ffa > 0
+
       runner.registerWarning("Adding finished basement adiabatic ceiling with #{addtl_ffa.to_s} ft^2.")
 
       finishedfloor_width = Math::sqrt(addtl_ffa)

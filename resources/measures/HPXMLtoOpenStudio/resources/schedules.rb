@@ -74,6 +74,7 @@ class HourlyByMonthSchedule
           return nil
         end
         next unless val.length != num_inner_values
+
         @runner.registerError(err_msg)
         @validated = false
         return nil
@@ -258,6 +259,7 @@ class MonthWeekdayWeekendSchedule
       end
       values.each do |val|
         next unless not valid_float?(val)
+
         @runner.registerError(err_msg)
         @validated = false
         return nil
@@ -268,6 +270,7 @@ class MonthWeekdayWeekendSchedule
         vals = values.split(',')
         vals.each do |val|
           next unless not valid_float?(val)
+
           @runner.registerError(err_msg)
           @validated = false
           return nil

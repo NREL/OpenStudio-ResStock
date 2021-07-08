@@ -1,0 +1,121 @@
+schema_version: '0.3'
+buildstock_directory: ../../resstock # Relative to this file or absolute
+project_directory: project_national # Relative to buildstock_directory
+output_directory: outputs
+# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+
+sampler:
+  type: residential_quota
+  args:
+    n_datapoints: 20
+
+workflow_generator:
+  type: residential_hpxml
+  args:
+    build_existing_model:
+      simulation_control_timestep: 60
+      simulation_control_run_period_begin_month: 1
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 12
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2007
+      debug: false
+
+    simulation_output_report:
+      timeseries_frequency: none
+      include_timeseries_fuel_consumptions: false
+      include_timeseries_end_use_consumptions: false
+      include_timeseries_hot_water_uses: false
+      include_timeseries_total_loads: false
+      include_timeseries_component_loads: false
+      include_timeseries_unmet_loads: false
+      include_timeseries_zone_temperatures: false
+      include_timeseries_airflows: false
+      include_timeseries_weather: false
+
+baseline:
+  n_buildings_represented: 110000000
+
+upgrades:
+  - upgrade_name: Flex Air Source Heat Pump
+    options:
+      - option: HVAC Heating Type And Fuel|Electricity ASHP
+        costs:
+          - value: 3000.0
+            multiplier: Fixed (1)
+          - value: 120.0
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 30
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, Flex
+      - option: HVAC Cooling Efficiency|None
+
+  - upgrade_name: Modulating Air Source Heat Pump
+    options:
+      - option: HVAC Heating Type And Fuel|Electricity ASHP
+        costs:
+          - value: 3000.0
+            multiplier: Fixed (1)
+          - value: 120.0
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 30
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, Modulating
+      - option: HVAC Cooling Efficiency|None
+
+  - upgrade_name: Dual Source Air Source Heat Pump
+    options:
+      - option: HVAC Heating Type And Fuel|Electricity ASHP
+        costs:
+          - value: 3000.0
+            multiplier: Fixed (1)
+          - value: 120.0
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 30
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, Dual Source
+      - option: HVAC Cooling Efficiency|None
+
+  - upgrade_name: IHP Grid AC Source Heat Pump
+    options:
+      - option: HVAC Heating Type And Fuel|Electricity ASHP
+        costs:
+          - value: 3000.0
+            multiplier: Fixed (1)
+          - value: 120.0
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 30
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, IHP Grid AC
+      - option: HVAC Cooling Efficiency|None
+
+  - upgrade_name: IHP Ice Storage Source Heat Pump
+    options:
+      - option: HVAC Heating Type And Fuel|Electricity ASHP
+        costs:
+          - value: 3000.0
+            multiplier: Fixed (1)
+          - value: 120.0
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 30
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, IHP Ice Storage
+      - option: HVAC Cooling Efficiency|None
+
+  - upgrade_name: IHP Pcm Storage Source Heat Pump
+    options:
+      - option: HVAC Heating Type And Fuel|Electricity ASHP
+        costs:
+          - value: 3000.0
+            multiplier: Fixed (1)
+          - value: 120.0
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 30
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, IHP Pcm Storage
+      - option: HVAC Cooling Efficiency|None
+
+eagle:
+  n_jobs: 2
+  minutes_per_sim: 1
+  account: <account you are authorized to use>
+  sampling:
+    time: 10
+  postprocessing:
+    time: 10
+    n_workers: 1

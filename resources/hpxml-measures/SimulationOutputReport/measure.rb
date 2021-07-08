@@ -2393,6 +2393,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       return { 'OpenStudio::Model::AirLoopHVACUnitarySystem' => ["Unitary System Heating Ancillary #{fuel} Energy"],
                'OpenStudio::Model::CoilHeatingDXSingleSpeed' => ["Heating Coil #{fuel} Energy", "Heating Coil Crankcase Heater #{fuel} Energy", "Heating Coil Defrost #{fuel} Energy"],
                'OpenStudio::Model::CoilHeatingDXMultiSpeed' => ["Heating Coil #{fuel} Energy", "Heating Coil Crankcase Heater #{fuel} Energy", "Heating Coil Defrost #{fuel} Energy"],
+               'OpenStudio::Model::CoilHeatingDXVariableSpeed' => ["Heating Coil #{fuel} Energy", "Heating Coil Crankcase Heater #{fuel} Energy", "Heating Coil Defrost #{fuel} Energy"],
                'OpenStudio::Model::CoilHeatingElectric' => ["Heating Coil #{fuel} Energy", "Heating Coil Crankcase Heater #{fuel} Energy", "Heating Coil Defrost #{fuel} Energy"],
                'OpenStudio::Model::CoilHeatingGas' => ["Heating Coil #{fuel} Energy"],
                'OpenStudio::Model::CoilHeatingWaterToAirHeatPumpEquationFit' => ["Heating Coil #{fuel} Energy", "Heating Coil Crankcase Heater #{fuel} Energy", "Heating Coil Defrost #{fuel} Energy"],
@@ -2414,8 +2415,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       fuel = EPlus::FuelTypeElectricity
       return { 'OpenStudio::Model::CoilCoolingDXSingleSpeed' => ["Cooling Coil #{fuel} Energy", "Cooling Coil Crankcase Heater #{fuel} Energy"],
                'OpenStudio::Model::CoilCoolingDXMultiSpeed' => ["Cooling Coil #{fuel} Energy", "Cooling Coil Crankcase Heater #{fuel} Energy"],
+               'OpenStudio::Model::CoilCoolingDXVariableSpeed' => ["Cooling Coil #{fuel} Energy", "Cooling Coil Crankcase Heater #{fuel} Energy"],
                'OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit' => ["Cooling Coil #{fuel} Energy", "Cooling Coil Crankcase Heater #{fuel} Energy"],
-               'OpenStudio::Model::EvaporativeCoolerDirectResearchSpecial' => ["Evaporative Cooler #{fuel} Energy"] }
+               'OpenStudio::Model::EvaporativeCoolerDirectResearchSpecial' => ["Evaporative Cooler #{fuel} Energy"],
+               'OpenStudio::Model::CoilChillerAirSourceVariableSpeed' => ["Cooling Coil #{fuel} Energy"],
+               'OpenStudio::Model::ThermalStorageIceDetailed' => ["Ice Thermal Storage Ancillary #{fuel} Energy"],
+               'OpenStudio::Model::HeaderedPumpsConstantSpeed' => ["Pump #{fuel} Energy"] }
     end
 
     def self.DehumidifierElectricity

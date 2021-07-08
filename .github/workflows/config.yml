@@ -11,7 +11,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:3.2.1
+      image: docker://nrel/openstudio:flex-2
     steps:
       - name: Show environment
         run: |
@@ -63,6 +63,12 @@ jobs:
         with:
           path: test/test_samples_osw/baseline/results
           name: results
+
+      - name: Upload flex integration results
+        uses: actions/upload-artifact@v2
+        with:
+          path: test/test_samples_osw/upgrades-flex/results
+          name: flex-results
 
   compare-results:
     if: github.event_name == 'pull_request'

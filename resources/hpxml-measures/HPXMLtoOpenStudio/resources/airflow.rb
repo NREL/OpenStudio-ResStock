@@ -524,7 +524,11 @@ class Airflow
       if system.nil? # Evaporative cooler supply fan directly on air loop
         supply_fan = osm_object.supplyFan.get
       else
-        supply_fan = system.supplyFan.get
+        if system.to_AirLoopHVACUnitarySystem.is_initialized
+          supply_fan = system.supplyFan.get
+        elsif system.to_AirLoopHVACUnitaryHeatPumpAirToAir.is_initialized
+          supply_fan = system.supplyAirFan
+        end
       end
     else
       fail 'Unexpected object type.'
@@ -551,6 +555,12 @@ class Airflow
         rtf_sensor.setKeyName(supply_fan.name.to_s)
         @fan_rtf_sensor[osm_object] << rtf_sensor
       end
+    elsif supply_fan.to_FanOnOff.is_initialized
+      @fan_rtf_sensor[osm_object] = []
+      rtf_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Fan Runtime Fraction')
+      rtf_sensor.setName("#{@fan_rtf_var[osm_object].name} s")
+      rtf_sensor.setKeyName(supply_fan.name.to_s)
+      @fan_rtf_sensor[osm_object] << rtf_sensor
     else
       fail "Unexpected fan: #{supply_fan.name}"
     end

@@ -2710,22 +2710,11 @@ class HVAC
         end
       else # no thermostat in model yet
 
-        clg_wkdy_monthly = [[UnitConversions.convert(Constants.DefaultCoolingSetpoint, 'F', 'C')] * 24] * 12
-        clg_wked_monthly = [[UnitConversions.convert(Constants.DefaultCoolingSetpoint, 'F', 'C')] * 24] * 12
+        clg_wkdy_monthly = htg_wkdy_monthly
+        clg_wked_monthly = htg_wked_monthly
 
       end
       break # assume all finished zones have the same schedules
-    end
-
-    # Store the setpoints on thermostat_setpoint for DR measure
-    finished_zones.each do |finished_zone|
-      thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
-      next unless thermostat_setpoint.is_initialized
-      thermostat_setpoint = thermostat_setpoint.get
-      thermostat_setpoint.additionalProperties.setFeature('htg_wkdy', "#{htg_wkdy_monthly[0].join(',')}")
-      thermostat_setpoint.additionalProperties.setFeature('htg_wked', "#{htg_wked_monthly[0].join(',')}")
-      thermostat_setpoint.additionalProperties.setFeature('clg_wkdy', "#{clg_wkdy_monthly[0].join(',')}")
-      thermostat_setpoint.additionalProperties.setFeature('clg_wked', "#{clg_wked_monthly[0].join(',')}")
     end
 
     (0..11).to_a.each do |i|
@@ -2797,6 +2786,15 @@ class HVAC
       next if obj.directUseCount > 0
 
       obj.remove
+    end
+
+    # Store the setpoints on thermostat_setpoint for DR measure
+    finished_zones.each do |finished_zone|
+      thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
+      next unless thermostat_setpoint.is_initialized
+      thermostat_setpoint = thermostat_setpoint.get
+      thermostat_setpoint.additionalProperties.setFeature('htg_wkdy', "#{htg_wkdy_monthly[0].join(',')}")
+      thermostat_setpoint.additionalProperties.setFeature('htg_wked', "#{htg_wked_monthly[0].join(',')}")
     end
 
     return true
@@ -2873,22 +2871,11 @@ class HVAC
         end
       else # no thermostat in model yet
 
-        htg_wkdy_monthly = [[UnitConversions.convert(Constants.DefaultHeatingSetpoint, 'F', 'C')] * 24] * 12
-        htg_wked_monthly = [[UnitConversions.convert(Constants.DefaultHeatingSetpoint, 'F', 'C')] * 24] * 12
+        htg_wkdy_monthly = clg_wkdy_monthly
+        htg_wked_monthly = clg_wked_monthly
 
       end
       break # assume all finished zones have the same schedules
-    end
-
-    # Store the setpoints on thermostat_setpoint for DR measure
-    finished_zones.each do |finished_zone|
-      thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
-      next unless thermostat_setpoint.is_initialized
-      thermostat_setpoint = thermostat_setpoint.get
-      thermostat_setpoint.additionalProperties.setFeature('htg_wkdy', "#{htg_wkdy_monthly[0].join(',')}")
-      thermostat_setpoint.additionalProperties.setFeature('htg_wked', "#{htg_wked_monthly[0].join(',')}")
-      thermostat_setpoint.additionalProperties.setFeature('clg_wkdy', "#{clg_wkdy_monthly[0].join(',')}")
-      thermostat_setpoint.additionalProperties.setFeature('clg_wked', "#{clg_wked_monthly[0].join(',')}")
     end
 
     (0..11).to_a.each do |i|
@@ -2956,6 +2943,15 @@ class HVAC
       next if obj.directUseCount > 0
 
       obj.remove
+    end
+
+    # Store the setpoints on thermostat_setpoint for DR measure
+    finished_zones.each do |finished_zone|
+      thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
+      next unless thermostat_setpoint.is_initialized
+      thermostat_setpoint = thermostat_setpoint.get
+      thermostat_setpoint.additionalProperties.setFeature('clg_wkdy', "#{clg_wkdy_monthly[0].join(',')}")
+      thermostat_setpoint.additionalProperties.setFeature('clg_wked', "#{clg_wked_monthly[0].join(',')}")
     end
 
     return true

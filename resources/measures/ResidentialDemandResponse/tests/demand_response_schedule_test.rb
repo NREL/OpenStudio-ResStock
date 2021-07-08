@@ -138,7 +138,7 @@ class DemandResponseScheduleTest < MiniTest::Test
                         'heat_tsp_dr_plus' => 71,    #+DR --> averaged
                         'heat_tsp_dr_minus' => 66,   #-DR (not inverted)
                         'cool_tsp_non_dr' => 69,     # averaged
-                        'cool_tsp_dr_plus' => 72,    #+DR (not inverted)
+                        'cool_tsp_dr_plus' => 73,    #+DR (not inverted)
                         'cool_tsp_dr_minus' => 67 } #-DR --> averaged
     _test_measure('SFD_70heat_68cool_12mo_seasons.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
   end
@@ -151,14 +151,14 @@ class DemandResponseScheduleTest < MiniTest::Test
     args_hash['dr_directory'] = './tests'
     args_hash['dr_schedule_heat'] = 'DR_schedule_h.csv'
     args_hash['dr_schedule_cool'] = 'DR_schedule_c.csv'
-    expected_num_new_objects = { 'ScheduleRuleset' => 2, 'ScheduleRule' => 12 } # Cool/Heat rulesets 1x, Cool/Heat 1 each w/ DR, 2 overlapping seasons each, 3 non-overlapping seasons each
+    expected_num_new_objects = { 'ScheduleRuleset' => 2, 'ScheduleRule' => 4 } # Cool/Heat rulesets 1x, Cool/Heat 1 each w/ DR, 2 overlapping seasons each, 3 non-overlapping seasons each
     expected_num_del_objects = { 'ScheduleRuleset' => 2, 'ScheduleRule' => 24 } # Cool/Heat original rulesets 2x; Cool/Heat 12 original schedule rule days each
     expected_values = { 'heat_tsp_non_dr' => 70,
                         'heat_tsp_dr_plus' => 74,
                         'heat_tsp_dr_minus' => 66,
                         'heat_tsp_coolseason' => 68, # match clg
                         'cool_tsp_non_dr' => 70,     # match htg
-                        'cool_tsp_dr_plus' => 72,    #+DR
+                        'cool_tsp_dr_plus' => 74,    #+DR
                         'cool_tsp_dr_minus' => 70,   # match htg
                         'cool_tsp_coolseason' => 68 }
     _test_measure('SFD_70heat_68cool_auto_seasons.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)

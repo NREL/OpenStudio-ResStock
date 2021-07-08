@@ -34,6 +34,7 @@ Fixes
 - Fixes number of bathrooms for single-family attached and multi-family buildings ([#601](https://github.com/NREL/resstock/pull/601))
 - Sync the sample probabilities after a bug fix in tsv_dist ([#609](https://github.com/NREL/resstock/pull/609))
 - Fix name of ReEDS balancing areas ([#613](https://github.com/NREL/resstock/pull/613))
+- Fixes bug related to heating/cooling setpoints during overlap seasons where "high" or "low" setpoints were being averaged with default values rather than specified values ([#633](https://github.com/NREL/resstock/pull/633))
 
 ## ResStock v2.4.0
 

@@ -1,0 +1,5643 @@
+schema_version: '0.3'
+buildstock_directory: ../resstock  # Relative to this file or absolute
+project_directory: project_national  # Relative to buildstock_directory
+output_directory: ./abc_typology_test
+# weather_files_url: https://s3.amazonaws.com/epwweatherfiles/project_resstock_national.zip
+# weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip  # Relative to this file or absolute path to zipped weather files
+# weather_files_path: ./resstock_national_weather_refactored.zip  # Relative to this file or absolute path to zipped weather files
+weather_files_path: ./BuildStock_TMY3_FIPS.zip
+baseline:
+  n_buildings_represented: 14600
+
+sampler: 
+  type: residential_quota
+  args: 
+    n_datapoints: 10
+
+workflow_generator: 
+  type: residential_default
+  args: 
+    timeseries_csv_export: 
+      reporting_frequency: Hourly
+      include_enduse_subcategories: true
+    # residential_simulation_controls: 
+    #   timesteps_per_hr: 6
+    #   begin_month: 1
+    #   begin_day_of_month: 1
+    #   end_month: 12
+    #   end_day_of_month: 31
+    #   calendar_year: 2007
+
+eagle:
+  account: abctypol
+  n_jobs: 500
+  minutes_per_sim: 5
+  sampling:
+    time: 20
+  postprocessing:
+    time: 60
+
+upgrades:
+  - upgrade_name: Package 1
+    options:
+      # Clothes washer Upgrade
+      - &clothes_washer_80pct
+        option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+        apply_logic: Clothes Washer|Standard, 80% Usage
+        costs:
+          - value: 72
+            multiplier: Fixed (1)
+        lifetime: 14
+      - &clothes_washer_100pct
+        option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+        apply_logic: Clothes Washer|Standard, 100% Usage
+        costs:
+          - value: 72
+            multiplier: Fixed (1)
+        lifetime: 14
+      - &clothes_washer_120pct
+        option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
+        apply_logic: Clothes Washer|Standard, 120% Usage
+        costs:
+          - value: 72
+            multiplier: Fixed (1)
+        lifetime: 14
+      
+      # Dishwasher Upgrade
+      - &dishwasher_80pct
+        option: Dishwasher|144 Rated kWh, 80% Usage
+        apply_logic:
+          or: 
+            - Dishwasher|290 Rated kWh, 80% Usage
+            - Dishwasher|318 Rated kWh, 80% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - &dishwasher_100pct
+        option: Dishwasher|144 Rated kWh, 100% Usage
+        apply_logic:
+          or: 
+            - Dishwasher|290 Rated kWh, 100% Usage
+            - Dishwasher|318 Rated kWh, 100% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - &dishwasher_120pct
+        option: Dishwasher|144 Rated kWh, 120% Usage
+        apply_logic:
+          or: 
+            - Dishwasher|290 Rated kWh, 120% Usage
+            - Dishwasher|318 Rated kWh, 120% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1) 
+        lifetime: 11
+      
+      # Refrigerator Upgrade
+      - &refrigerator
+        option: Refrigerator|EF 21.9
+        apply_logic:
+          not: Refrigerator|EF 21.9
+        costs:
+          - value: 670
+            multiplier: Fixed (1)
+        lifetime: 17.4
+      
+      # Clothes Dryer Upgrade
+      - &clothes_dryer_80pct
+        option: Clothes Dryer|Electric, Premium, Heat Pump, Ventless, 80% Usage
+        apply_logic:
+          or: 
+            - Clothes Dryer|Electric, 80% Usage
+            - Clothes Dryer|Gas, 80% Usage
+            - Clothes Dryer|Propane, 80% Usage
+        costs:
+          - value: 1200
+            multiplier: Fixed (1)
+        lifetime: 13
+      - &clothes_dryer_100pct
+        option: Clothes Dryer|Electric, Premium, Heat Pump, Ventless, 100% Usage
+        apply_logic:
+          or: 
+            - Clothes Dryer|Electric, 100% Usage
+            - Clothes Dryer|Gas, 100% Usage
+            - Clothes Dryer|Propane, 100% Usage
+        costs:
+          - value: 1200
+            multiplier: Fixed (1)
+        lifetime: 13
+      - &clothes_dryer_120pct
+        option: Clothes Dryer|Electric, Premium, Heat Pump, Ventless, 120% Usage
+        apply_logic:
+          or: 
+            - Clothes Dryer|Electric, 120% Usage
+            - Clothes Dryer|Gas, 120% Usage
+            - Clothes Dryer|Propane, 120% Usage
+        costs:
+          - value: 1200
+            multiplier: Fixed (1)
+        lifetime: 13
+      
+      # Lighting Upgrade
+      - &lighting
+        option: Lighting|100% LED, High Efficacy
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|60% CFL Hardwired, 34% CFL Plugin
+            - Lighting|60% LED Hardwired, 34% CFL Plugin
+            - Lighting|60% CFL
+            - Lighting|100% CFL
+            - Lighting|100% LED, Low Efficacy            
+        costs:
+          - value: 0.40
+            multiplier: Floor Area, Lighting (ft^2)
+        lifetime: 78.28
+        
+      # Cooking upgrade
+      - &cooking_range
+        option: Cooking Range|Electric, Induction
+        apply_logic:
+          not: Cooking Range|Electric, Induction
+        costs:
+          - value: 0 
+            multiplier: Fixed (1)
+        lifetime: 999
+
+      # Ducts sealing and insulation Upgrade to R-8, 10% leakage
+      - &ducts_category1
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|85% Leakage, Uninsulated
+            - Ducts|53% Leakage, Uninsulated
+            - Ducts|34% Leakage, Uninsulated
+            - Ducts|30% Leakage, Uninsulated
+            - Ducts|85% Leakage, R-4
+            - Ducts|85% Leakage, R-6
+            - Ducts|53% Leakage, R-4
+            - Ducts|53% Leakage, R-6
+            - Ducts|34% Leakage, R-4
+            - Ducts|34% Leakage, R-6
+            - Ducts|30% Leakage, R-4
+            - Ducts|30% Leakage, R-6            
+        costs:
+          - value: 2.2
+            multiplier: Duct Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category2
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|85% Leakage, R-8
+            - Ducts|53% Leakage, R-8
+            - Ducts|34% Leakage, R-8
+            - Ducts|30% Leakage, R-8   
+        costs:
+          - value: 0.81
+            multiplier: Duct Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category3
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|24% Leakage, Uninsulated
+            - Ducts|24% Leakage, R-4
+            - Ducts|24% Leakage, R-6
+            - Ducts|20% Leakage, Uninsulated
+            - Ducts|20% Leakage, R-4
+            - Ducts|20% Leakage, R-6 
+        costs:
+          - value: 0.4
+            multiplier: Duct Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category4
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|24% Leakage, R-8
+            - Ducts|20% Leakage, R-8
+        costs:
+          - value: 0.4
+            multiplier: Duct Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category5
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|15% Leakage, Uninsulated
+            - Ducts|15% Leakage, R-4
+            - Ducts|15% Leakage, R-6
+            - Ducts|14% Leakage, Uninsulated
+            - Ducts|14% Leakage, R-4
+            - Ducts|14% Leakage, R-6
+            - Ducts|15% Leakage, R-6, 50% Surface Area, 1 return
+        costs:
+          - value: 1.6
+            multiplier: Duct Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category6
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|15% Leakage, R-8
+            - Ducts|14% Leakage, R-8
+        costs:
+          - value: 0.2
+            multiplier: Duct Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category7
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|10% Leakage, Uninsulated
+            - Ducts|10% Leakage, R-4
+            - Ducts|10% Leakage, R-6
+        costs:
+          - value: 1.4
+            multiplier: Duct Surface Area (ft^2)
+        lifetime: 30
+
+      # Heat Pump Water Heater Upgrade
+      # - &water_heater_efficiency_50gal
+      #   option: Water Heater Efficiency|Electric Heat Pump, 50 gal
+      #   apply_logic:
+      #     - not: 
+      #       - Water Heater Efficiency|Electric Heat Pump, 50 gal
+      #       - Water Heater Efficiency|Electric Heat Pump, 50 gal, 140F
+      #       - Water Heater Efficiency|Electric Heat Pump, 50 gal, In Confined Space
+      #       - Water Heater Efficiency|Electric Heat Pump, 80 gal
+      #     - Water Heater In Unit|Yes
+      #   costs:
+      #     - value: 1700
+      #       multiplier: Fixed (1)
+      #   lifetime: 12
+      - &water_heater_efficiency_80gal
+        option: Water Heater Efficiency|Electric Heat Pump, 80 gal
+        apply_logic:
+          - not: 
+            - Water Heater Efficiency|Electric Heat Pump, 50 gal
+            - Water Heater Efficiency|Electric Heat Pump, 50 gal, 140F
+            - Water Heater Efficiency|Electric Heat Pump, 50 gal, In Confined Space
+            - Water Heater Efficiency|Electric Heat Pump, 80 gal
+        costs:
+          - value: 2000
+            multiplier: Fixed (1)
+        lifetime: 12
+      
+      # HVAC Upgrade
+      - &HVAC_efficiency_ASHP_duct
+        option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, max load
+        apply_logic:
+          - not: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, max load
+          - HVAC Has Ducts|Yes
+        costs:
+          - value: 4600
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      - &HVAC_efficiency_MSHP_ductless
+        option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, max load
+        apply_logic:
+          - not: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, max load
+          - HVAC Has Ducts|No
+        costs:
+          - value: 2510
+            multiplier: Fixed (1)
+          - value: 95
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      
+
+  - upgrade_name: Package 1b
+    options: 
+      # Same packages as Package 1
+      - *clothes_washer_80pct
+      - *clothes_washer_100pct
+      - *clothes_washer_120pct
+      - *dishwasher_80pct
+      - *dishwasher_100pct
+      - *dishwasher_120pct
+      - *refrigerator
+      - *clothes_dryer_80pct
+      - *clothes_dryer_100pct
+      - *clothes_dryer_120pct
+      - *lighting
+      - *cooking_range
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      - *ducts_category5
+      - *ducts_category6
+      - *ducts_category7
+      - *water_heater_efficiency_80gal
+
+      # HVAC Upgrade
+      - &HVAC_efficiency_ASHP_duct_1b
+        option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
+        apply_logic:
+          - not: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
+          - HVAC Has Ducts|Yes
+        costs:
+          - value: 4600
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      - &HVAC_efficiency_MSHP_ductless_1b
+        option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+        apply_logic:
+          - not: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+          - HVAC Has Ducts|No
+        costs:
+          - value: 2510
+            multiplier: Fixed (1)
+          - value: 95
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      
+  - upgrade_name: Package 2
+    options:
+      # Same packages as Package 1 
+      - *clothes_washer_80pct
+      - *clothes_washer_100pct
+      - *clothes_washer_120pct
+      - *dishwasher_80pct
+      - *dishwasher_100pct
+      - *dishwasher_120pct
+      - *refrigerator
+      - *clothes_dryer_80pct
+      - *clothes_dryer_100pct
+      - *clothes_dryer_120pct
+      - *lighting
+      - *cooking_range
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      - *ducts_category5
+      - *ducts_category6
+      - *ducts_category7
+      - *water_heater_efficiency_80gal
+      - *HVAC_efficiency_ASHP_duct
+      - *HVAC_efficiency_MSHP_ductless
+      # ERV upgrade
+      - &ERVupgrade_sensible_60pct
+        option: Mechanical Ventilation|ERV, 60%, 2010 ASHRAE 62.2
+        apply_logic:
+          or: 
+            - ASHRAE IECC Climate Zone 2004|1A
+            - ASHRAE IECC Climate Zone 2004|2A
+        costs:
+          - value: 940
+            multiplier: Fixed (1)
+        lifetime: 18
+      - &ERVupgrade_sensible_50pct
+        option: Mechanical Ventilation|ERV, 50%, 2010 ASHRAE 62.2
+        apply_logic:
+          or: 
+            - ASHRAE IECC Climate Zone 2004|2B
+        costs: 
+          - value: 940
+            multiplier: Fixed (1)
+        lifetime: 18
+      - &ERVupgrade_sensible_70pct
+        option: Mechanical Ventilation|ERV, 70%, 2010 ASHRAE 62.2
+        apply_logic:
+          or: 
+            - ASHRAE IECC Climate Zone 2004|3A
+        costs: 
+          - value: 940
+            multiplier: Fixed (1)
+        lifetime: 18
+      - &ERVupgrade_sensible_80pct
+        option: Mechanical Ventilation|ERV, 70%, 2010 ASHRAE 62.2
+        apply_logic:
+          or: 
+            - ASHRAE IECC Climate Zone 2004|4A
+        costs: 
+          - value: 940
+            multiplier: Fixed (1)
+        lifetime: 18
+
+      # HRV upgrade
+      - &HRVupgrade_sensible_60pct
+        option: Mechanical Ventilation|HRV, 60%, 2010 ASHRAE 62.2
+        apply_logic: 
+          or:
+            - ASHRAE IECC Climate Zone 2004|3C
+        costs: 
+          - value: 980
+            multiplier: Fixed (1)
+        lifetime: 18
+      - &HRVupgrade_sensible_70pct
+        option: Mechanical Ventilation|HRV, 70%, 2010 ASHRAE 62.2
+        apply_logic: 
+          or:
+            - ASHRAE IECC Climate Zone 2004|3B
+            - ASHRAE IECC Climate Zone 2004|4C
+        costs: 
+          - value: 980
+            multiplier: Fixed (1)
+        lifetime: 18
+      - &HRVupgrade_sensible_75pct
+        option: Mechanical Ventilation|HRV, 75%, 2010 ASHRAE 62.2
+        apply_logic: 
+          or:
+            - ASHRAE IECC Climate Zone 2004|4B
+        costs: 
+          - value: 980
+            multiplier: Fixed (1)
+        lifetime: 18
+      - &HRVupgrade_sensible_80pct
+        option: Mechanical Ventilation|HRV, 80%, 2010 ASHRAE 62.2
+        apply_logic: 
+          or:
+            - ASHRAE IECC Climate Zone 2004|5B
+        costs: 
+          - value: 980
+            multiplier: Fixed (1)
+        lifetime: 18
+      - &HRVupgrade_sensible_85pct
+        option: Mechanical Ventilation|HRV, 85%, 2010 ASHRAE 62.2
+        apply_logic: 
+          or:
+            - ASHRAE IECC Climate Zone 2004|5A
+            - ASHRAE IECC Climate Zone 2004|6A
+            - ASHRAE IECC Climate Zone 2004|6B
+            - ASHRAE IECC Climate Zone 2004|7A
+            - ASHRAE IECC Climate Zone 2004|7B
+        costs: 
+          - value: 980
+            multiplier: Fixed (1)
+        lifetime: 18
+
+  - upgrade_name: Package 3
+    options: 
+      # Same packages as Package 2
+      - *clothes_washer_80pct
+      - *clothes_washer_100pct
+      - *clothes_washer_120pct
+      - *dishwasher_80pct
+      - *dishwasher_100pct
+      - *dishwasher_120pct
+      - *refrigerator
+      - *clothes_dryer_80pct
+      - *clothes_dryer_100pct
+      - *clothes_dryer_120pct
+      - *lighting
+      - *cooking_range
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      - *ducts_category5
+      - *ducts_category6
+      - *ducts_category7
+      - *water_heater_efficiency_80gal
+      - *HVAC_efficiency_ASHP_duct
+      - *HVAC_efficiency_MSHP_ductless
+      - *ERVupgrade_sensible_60pct
+      - *ERVupgrade_sensible_50pct
+      - *ERVupgrade_sensible_70pct
+      - *ERVupgrade_sensible_80pct
+      - *HRVupgrade_sensible_60pct
+      - *HRVupgrade_sensible_70pct
+      - *HRVupgrade_sensible_75pct
+      - *HRVupgrade_sensible_80pct
+      - *HRVupgrade_sensible_85pct
+
+      # 1" wall insulation added to the homes
+      - &polyiso_1inch_on_uninsulated_wood
+        #1" polyiso continuous insulation, R-6.5, 19% whole home reduction in ACH50, $1.40 per sq ft exterior wall, for all homes older than 1990 with <R-19 wall insulation
+        option: Insulation Wall|Wood Stud, Uninsulated, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, Uninsulated
+            - not: &vintage_exclusions
+              - Vintage|1990s
+              - Vintage|2000s
+              - Vintage|2010s
+        costs: &polyiso_1inch_costs
+          - value: 1.4
+            multiplier: Wall Area, Above-Grade, Exterior (ft^2)
+        lifetime: 30
+      - &polyiso_1inch_on_R-7_wood
+        option: Insulation Wall|Wood Stud, R-7, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-7
+            - not: *vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-11_wood
+        option: Insulation Wall|Wood Stud, R-11, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-11
+            - not: *vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-13_wood
+        option: Insulation Wall|Wood Stud, R-13, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-13
+            - not: *vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-15_wood
+        option: Insulation Wall|Wood Stud, R-15, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-15
+            - not: *vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_uninsulated_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, Uninsulated, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, Uninsulated
+            - not: *vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-7_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-7, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+            - not: *vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-11_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-11, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+            - not: *vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-15_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-15, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+            - not: *vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_uninsulated_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated
+            - not: *vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-7_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-7, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-7
+            - not: *vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-11_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-11, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-11
+            - not: *vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-15_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-15, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-15
+            - not: *vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+
+      # Attic Air Insulation Upgrade
+      - &R-30_attic
+        option: Insulation Unfinished Attic|Ceiling R-30, Vented
+        apply_logic:
+          - or: 
+            - ASHRAE IECC Climate Zone 2004|1A
+          - or: 
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+        costs:
+          - value: 0.5 # Need to update according to detailed tendril calculation if cost needed in future
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - &R-49_attic
+        option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic:
+          - or: 
+            - ASHRAE IECC Climate Zone 2004|2A
+            - ASHRAE IECC Climate Zone 2004|2B
+            - ASHRAE IECC Climate Zone 2004|3A
+            - ASHRAE IECC Climate Zone 2004|3B
+            - ASHRAE IECC Climate Zone 2004|3C
+          - or: 
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+            - Insulation Unfinished Attic|Ceiling R-30, Vented
+            - Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0.5 # Need to update according to detailed tendril calculation if cost needed in future
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - &R-60_attic
+        option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic:
+          - or: 
+            - ASHRAE IECC Climate Zone 2004|4A
+            - ASHRAE IECC Climate Zone 2004|4B
+            - ASHRAE IECC Climate Zone 2004|4C
+            - ASHRAE IECC Climate Zone 2004|5A
+            - ASHRAE IECC Climate Zone 2004|5B
+            - ASHRAE IECC Climate Zone 2004|6A
+            - ASHRAE IECC Climate Zone 2004|6B
+            - ASHRAE IECC Climate Zone 2004|7A
+            - ASHRAE IECC Climate Zone 2004|7B
+          - or: 
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+            - Insulation Unfinished Attic|Ceiling R-30, Vented
+            - Insulation Unfinished Attic|Ceiling R-38, Vented
+            - Insulation Unfinished Attic|Ceiling R-49, Vented
+        costs:
+          - value: 0.5 # Need to update according to detailed tendril calculation if cost needed in future
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      
+      # Low-e storm upgrade 
+      - &low-e_storms_on_single_clear_metal
+        option: Windows|Single, Clear, Metal, Exterior Low-E Storm
+        apply_logic: 
+          - or:
+            - Windows|Single, Clear, Metal
+            - Windows|Single, Clear, Metal, Exterior Clear Storm
+        costs: &low-e_storms_costs
+          - value: 23
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &low-e_storms_on_single_clear_nonmetal
+        option: Windows|Single, Clear, Non-metal, Exterior Low-E Storm
+        apply_logic: 
+          - or:
+            - Windows|Single, Clear, Non-metal
+            - Windows|Single, Clear, Non-metal, Exterior Clear Storm
+        costs: *low-e_storms_costs
+        lifetime: 30
+      - &low-e_storms_on_double_clear_metal
+        option: Windows|Double, Clear, Metal, Exterior Low-E Storm
+        apply_logic: 
+          - or: 
+            - Windows|Double, Clear, Metal, Air
+        costs: *low-e_storms_costs
+        lifetime: 30
+      - &low-e_storms_on_double_clear_nonmetal
+        option: Windows|Double, Clear, Non-metal, Exterior Low-E Storm
+        apply_logic: 
+          - or: 
+            - Windows|Double, Clear, Non-metal, Air
+        costs: *low-e_storms_costs
+        lifetime: 30
+      
+      ## ACH50 reduction for Wall insulation upgrade ONLY##
+      # 19% ACH50 reductions are for ONLY 1" polyiso for: 
+      # 1) Other than Vented Crawlspace 
+      # 2) Without window upgrade and, 
+      # 3) Without attic upgrade (Multi-family)
+      - &decrease_ACH50_19pct_from_1
+        option: Infiltration|0.81 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+            - or: &upgradable_walls
+              - Insulation Wall|Wood Stud, Uninsulated
+              - Insulation Wall|Wood Stud, R-7
+              - Insulation Wall|Wood Stud, R-11
+              - Insulation Wall|Wood Stud, R-13
+              - Insulation Wall|Wood Stud, R-15
+              - Insulation Wall|CMU, 6-in Hollow, Uninsulated
+              - Insulation Wall|CMU, 6-in Hollow, R-7
+              - Insulation Wall|CMU, 6-in Hollow, R-11
+              - Insulation Wall|CMU, 6-in Hollow, R-15
+              - Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated
+              - Insulation Wall|Brick, 12-in, 3-wythe, R-7
+              - Insulation Wall|Brick, 12-in, 3-wythe, R-11
+              - Insulation Wall|Brick, 12-in, 3-wythe, R-15
+            - not: *vintage_exclusions
+            - not: &upgradable_windows
+              - Windows|Single, Clear, Metal
+              - Windows|Single, Clear, Metal, Exterior Clear Storm
+              - Windows|Single, Clear, Non-metal
+              - Windows|Single, Clear, Non-metal, Exterior Clear Storm
+              - Windows|Double, Clear, Metal, Air
+              - Windows|Double, Clear, Non-metal, Air
+            - not: &upgradable_attic
+              - Geometry Building Type RECS|Single-Family Detached
+              - Geometry Building Type RECS|Single-Family Attached
+            - not: &vented_crawlspace
+              - Insulation Crawlspace|Uninsulated, Vented
+              - Insulation Crawlspace|Ceiling R-13, Vented
+              - Insulation Crawlspace|Ceiling R-19, Vented
+              - Insulation Crawlspace|Ceiling R-30, Vented
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_from_2
+        option: Infiltration|1.62 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_from_3
+        option: Infiltration|2.43 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_from_4
+        option: Infiltration|3.24 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_from_5
+        option: Infiltration|4.05 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_from_6
+        option: Infiltration|4.86 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_from_7
+        option: Infiltration|5.67 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_from_8
+        option: Infiltration|6.48 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_from_10
+        option: Infiltration|8.1 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_from_15
+        option: Infiltration|12.15 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_from_20
+        option: Infiltration|16.2 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_from_25
+        option: Infiltration|20.25 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_from_30
+        option: Infiltration|24.3 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_from_40
+        option: Infiltration|32.4 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_from_50
+        option: Infiltration|40.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+
+      # 13% ACH50 reductions are for ONLY 1" polyiso for: 
+      # 1) Vented crawlspace 
+      # 2) Without window upgrade and, 
+      # 3) Without attic upgrade (Multi-family)
+      - &decrease_ACH50_13pct_from_1
+        option: Infiltration|0.87 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_2
+        option: Infiltration|1.74 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_3
+        option: Infiltration|2.61 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_4
+        option: Infiltration|3.48 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_5
+        option: Infiltration|4.35 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_6
+        option: Infiltration|5.22 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_7
+        option: Infiltration|6.09 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_8
+        option: Infiltration|6.96 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_10
+        option: Infiltration|8.7 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_15
+        option: Infiltration|13.05 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_20
+        option: Infiltration|17.4 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_25
+        option: Infiltration|21.75 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_30
+        option: Infiltration|26.1 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_40
+        option: Infiltration|34.8 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_50
+        option: Infiltration|43.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      
+      ## ACH50 reduction for WINDOW UPGRADE ONLY##
+      # 30% ACH50 reductions are for ONLY Single-pane Window upgrade for:
+      # 1) Other than Vented crawlspace 
+      # 2) Without 1" polyiso upgrade
+      # 3) Without attic upgrade (Multi-family)
+      - &decrease_ACH50_30pct_from_1
+        option: Infiltration|0.7 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|1 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: &single_pane_windows
+              - Windows|Single, Clear, Metal
+              - Windows|Single, Clear, Non-metal
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_30pct_from_2
+        option: Infiltration|1.4 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|2 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_30pct_from_3
+        option: Infiltration|2.1 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|3 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_30pct_from_4
+        option: Infiltration|2.8 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|4 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_30pct_from_5
+        option: Infiltration|3.5 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|5 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_30pct_from_6
+        option: Infiltration|4.2 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|6 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_30pct_from_7
+        option: Infiltration|4.9 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|7 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_30pct_from_8
+        option: Infiltration|5.6 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|8 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_30pct_from_10
+        option: Infiltration|7 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|10 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_30pct_from_15
+        option: Infiltration|10.5 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|15 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_30pct_from_20
+        option: Infiltration|14 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|20 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_30pct_from_25
+        option: Infiltration|17.5 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|25 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_30pct_from_30
+        option: Infiltration|21 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|30 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_30pct_from_40
+        option: Infiltration|28 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|40 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_30pct_from_50
+        option: Infiltration|35 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|50 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      
+      # 10% ACH50 reductions are for ONLY Double-pane Window upgrade for:
+      # 1) Other than Vented crawlspace 
+      # 2) Without 1" polyiso upgrade
+      # 3) Without attic upgrade (Multi-family)
+      - &decrease_ACH50_10pct_from_1
+        option: Infiltration|0.9 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|1 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: &double_pane_windows
+              - Windows|Double, Clear, Metal, Air
+              - Windows|Double, Clear, Non-metal, Air
+              - Windows|Single, Clear, Metal, Exterior Clear Storm
+              - Windows|Single, Clear, Non-metal, Exterior Clear Storm
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_2
+        option: Infiltration|1.8 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|2 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_3
+        option: Infiltration|2.7 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|3 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_4
+        option: Infiltration|3.6 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|4 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_5
+        option: Infiltration|4.5 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|5 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_6
+        option: Infiltration|5.4 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|6 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_7
+        option: Infiltration|6.3 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|7 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_8
+        option: Infiltration|7.2 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|8 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_10
+        option: Infiltration|9 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|10 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_15
+        option: Infiltration|13.5 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|15 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_20
+        option: Infiltration|18 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|20 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_25
+        option: Infiltration|22.5 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|25 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_30
+        option: Infiltration|27 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|30 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_40
+        option: Infiltration|36 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|40 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_50
+        option: Infiltration|45 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|50 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      
+      # 21% ACH50 reductions are for ONLY Single-pane Window upgrade for:
+      # 1) Vented crawlspace 
+      # 2) Without 1" polyiso upgrade
+      # 3) Without attic upgrade (Multi-family)
+      - &decrease_ACH50_21pct_from_1
+        option: Infiltration|0.79 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|1 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_21pct_from_2
+        option: Infiltration|1.58 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|2 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_21pct_from_3
+        option: Infiltration|2.37 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|3 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_21pct_from_4
+        option: Infiltration|3.16 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|4 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_21pct_from_5
+        option: Infiltration|3.95 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|5 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_21pct_from_6
+        option: Infiltration|4.74 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|6 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_21pct_from_7
+        option: Infiltration|5.53 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|7 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_21pct_from_8
+        option: Infiltration|6.32 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|8 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_21pct_from_10
+        option: Infiltration|7.9 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|10 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_21pct_from_15
+        option: Infiltration|11.85 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|15 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_21pct_from_20
+        option: Infiltration|15.8 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|20 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_21pct_from_25
+        option: Infiltration|19.75 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|25 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_21pct_from_30
+        option: Infiltration|23.7 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|30 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_21pct_from_40
+        option: Infiltration|31.6 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|40 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_21pct_from_50
+        option: Infiltration|39.5 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|50 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      
+      # 7% ACH50 reductions are for ONLY Double-pane Window or single-pane with storm upgrade for:
+      # 1) Vented crawlspace 
+      # 2) Without 1" polyiso upgrade
+      # 3) Without attic upgrade (Multi-family)
+      - &decrease_ACH50_7pct_from_1
+        option: Infiltration|0.93 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|1 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_7pct_from_2
+        option: Infiltration|1.86 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|2 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_7pct_from_3
+        option: Infiltration|2.79 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|3 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_7pct_from_4
+        option: Infiltration|3.72 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|4 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_7pct_from_5
+        option: Infiltration|4.65 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|5 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_7pct_from_6
+        option: Infiltration|5.58 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|6 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_7pct_from_7
+        option: Infiltration|6.51 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|7 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_7pct_from_8
+        option: Infiltration|7.44 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|8 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_7pct_from_10
+        option: Infiltration|9.3 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|10 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_7pct_from_15
+        option: Infiltration|13.95 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|15 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_7pct_from_20
+        option: Infiltration|18.6 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|20 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_7pct_from_25
+        option: Infiltration|23.25 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|25 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_7pct_from_30
+        option: Infiltration|27.9 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|30 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_7pct_from_40
+        option: Infiltration|37.2 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|40 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_7pct_from_50
+        option: Infiltration|46.5 ACH50
+        apply_logic: 
+          and: 
+            - Infiltration|50 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs: 
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      
+      ## ACH50 reduction for ATTIC UPGRADE ONLY##
+      # 13% ACH50 reductions are for ONLY Attic Upgrade for: 
+      # 1) Other than Vented Crawlspace 
+      # 2) Without window upgrade and, 
+      # 3) Without 1" polyiso upgrade
+      - &decrease_ACH50_13pct_from_1_attic
+        option: Infiltration|0.87 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_2_attic
+        option: Infiltration|1.74 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_3_attic
+        option: Infiltration|2.61 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_4_attic
+        option: Infiltration|3.48 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_5_attic
+        option: Infiltration|4.35 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_6_attic
+        option: Infiltration|5.22 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_7_attic
+        option: Infiltration|6.09 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_8_attic
+        option: Infiltration|6.96 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_10_attic
+        option: Infiltration|8.7 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_15_attic
+        option: Infiltration|13.05 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_20_attic
+        option: Infiltration|17.4 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_25_attic
+        option: Infiltration|21.75 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_30_attic
+        option: Infiltration|26.1 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_40_attic
+        option: Infiltration|34.8 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_from_50_attic
+        option: Infiltration|43.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+
+      # 8% ACH50 reductions are for ONLY Attic Upgrade for: 
+      # 1) Vented Crawlspace 
+      # 2) Without window upgrade and, 
+      # 3) Without 1" polyiso upgrade
+      - &decrease_ACH50_8pct_from_1_attic
+        option: Infiltration|0.92 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_from_2_attic
+        option: Infiltration|1.84 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_from_3_attic
+        option: Infiltration|2.76 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_from_4_attic
+        option: Infiltration|3.68 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_from_5_attic
+        option: Infiltration|4.6 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_from_6_attic
+        option: Infiltration|5.52 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_from_7_attic
+        option: Infiltration|6.44 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_from_8_attic
+        option: Infiltration|7.36 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_from_10_attic
+        option: Infiltration|9.2 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_from_15_attic
+        option: Infiltration|13.8 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_from_20_attic
+        option: Infiltration|18.4 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_from_25_attic
+        option: Infiltration|23 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_from_30_attic
+        option: Infiltration|27.6 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_from_40_attic
+        option: Infiltration|36.8 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_from_50_attic
+        option: Infiltration|46 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+
+      ## ACH50 reduction for WALL AND WINDOW UPGRADE ONLY##
+      # 19% reduction for polyiso and 30% ACH50 reduction for low-E storm windows on single pane
+      # 1) Other than Vented Crawlspace
+      # 2) Without Attic Upgrade
+      - &decrease_ACH50_19pct_and_30pct_from_1
+        option: Infiltration|0.567 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_30pct_from_2
+        option: Infiltration|1.134 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_30pct_from_3
+        option: Infiltration|1.701 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_30pct_from_4
+        option: Infiltration|2.268 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_30pct_from_5
+        option: Infiltration|2.835 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_30pct_from_6
+        option: Infiltration|3.402 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_30pct_from_7
+        option: Infiltration|3.969 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_30pct_from_8
+        option: Infiltration|4.536 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_30pct_from_10
+        option: Infiltration|5.67 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_30pct_from_15
+        option: Infiltration|8.505 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_30pct_from_20
+        option: Infiltration|11.34 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_30pct_from_25
+        option: Infiltration|14.175 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_30pct_from_30
+        option: Infiltration|17.01 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_30pct_from_40
+        option: Infiltration|22.68 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_30pct_from_50
+        option: Infiltration|28.35 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      
+      # 19% reduction for polyiso and 10% ACH50 reduction for low-E storm windows on double pane
+      # 1) Other than Vented Crawlspace
+      # 2) Without Attic Upgrade
+      - &decrease_ACH50_19pct_and_10pct_from_1
+        option: Infiltration|0.729 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_10pct_from_2
+        option: Infiltration|1.458 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_10pct_from_3
+        option: Infiltration|2.187 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_10pct_from_4
+        option: Infiltration|2.916 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_10pct_from_5
+        option: Infiltration|3.645 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_10pct_from_6
+        option: Infiltration|4.374 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_10pct_from_7
+        option: Infiltration|5.103 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_10pct_from_8
+        option: Infiltration|5.832 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_10pct_from_10
+        option: Infiltration|7.29 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_10pct_from_15
+        option: Infiltration|10.935 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_10pct_from_20
+        option: Infiltration|14.58 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_10pct_from_25
+        option: Infiltration|18.225 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_10pct_from_30
+        option: Infiltration|21.87 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_10pct_from_40
+        option: Infiltration|29.16 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_19pct_and_10pct_from_50
+        option: Infiltration|36.45 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+
+      # 13% reduction for polyiso and 21% ACH50 reduction for low-E storm windows on single pane
+      # 1) Vented Crawlspace
+      # 2) Without Attic Upgrade
+      - &decrease_ACH50_13pct_and_21pct_from_1
+        option: Infiltration|0.69 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_21pct_from_2
+        option: Infiltration|1.37 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_21pct_from_3
+        option: Infiltration|2.06 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_21pct_from_4
+        option: Infiltration|2.75 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_21pct_from_5
+        option: Infiltration|3.44 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_21pct_from_6
+        option: Infiltration|4.12 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_21pct_from_7
+        option: Infiltration|4.81 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_21pct_from_8
+        option: Infiltration|5.50 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_21pct_from_10
+        option: Infiltration|6.87 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_21pct_from_15
+        option: Infiltration|10.31 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_21pct_from_20
+        option: Infiltration|13.75 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_21pct_from_25
+        option: Infiltration|17.18 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_21pct_from_30
+        option: Infiltration|20.62 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_21pct_from_40
+        option: Infiltration|27.49 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_21pct_from_50
+        option: Infiltration|34.37 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+
+      # 13% reduction for polyiso and 7% ACH50 reduction for low-E storm windows on double pane
+      # 1) Vented Crawlspace
+      # 2) Without Attic Upgrade
+      - &decrease_ACH50_13pct_and_7pct_from_1
+        option: Infiltration|0.81 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_7pct_from_2
+        option: Infiltration|1.62 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_7pct_from_3
+        option: Infiltration|2.43 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_7pct_from_4
+        option: Infiltration|3.24 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_7pct_from_5
+        option: Infiltration|4.05 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_7pct_from_6
+        option: Infiltration|4.85 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_7pct_from_7
+        option: Infiltration|5.66 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_7pct_from_8
+        option: Infiltration|6.47 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_7pct_from_10
+        option: Infiltration|8.09 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_7pct_from_15
+        option: Infiltration|12.14 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_7pct_from_20
+        option: Infiltration|16.18 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_7pct_from_25
+        option: Infiltration|20.23 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_7pct_from_30
+        option: Infiltration|24.27 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_7pct_from_40
+        option: Infiltration|32.36 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_7pct_from_50
+        option: Infiltration|40.46 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - not: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      
+      ## ACH50 reduction for ATTIC AND WINDOW UPGRADE ONLY##
+      # 13% reduction for attic and 30% ACH50 reduction for low-E storm windows on single pane
+      # 1) Other than Vented Crawlspace
+      # 2) Without polyiso upgrade
+      - &decrease_ACH50_13pct_and_30pct_from_1
+        option: Infiltration|0.61 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_30pct_from_2
+        option: Infiltration|1.22 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_30pct_from_3
+        option: Infiltration|1.83 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_30pct_from_4
+        option: Infiltration|2.44 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_30pct_from_5
+        option: Infiltration|3.05 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_30pct_from_6
+        option: Infiltration|3.65 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_30pct_from_7
+        option: Infiltration|4.26 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_30pct_from_8
+        option: Infiltration|4.87 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_30pct_from_10
+        option: Infiltration|6.09 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_30pct_from_15
+        option: Infiltration|9.14 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_30pct_from_20
+        option: Infiltration|12.18 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_30pct_from_25
+        option: Infiltration|15.23 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_30pct_from_30
+        option: Infiltration|18.27 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_30pct_from_40
+        option: Infiltration|24.36 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_30pct_from_50
+        option: Infiltration|30.45 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+
+      # 13% reduction for attic and 10% ACH50 reduction for low-E storm windows on double pane
+      # 1) Other than Vented Crawlspace
+      # 2) Without polyiso upgrade
+      - &decrease_ACH50_13pct_and_10pct_from_1
+        option: Infiltration|0.78 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_10pct_from_2
+        option: Infiltration|1.57 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_10pct_from_3
+        option: Infiltration|2.35 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_10pct_from_4
+        option: Infiltration|3.13 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_10pct_from_5
+        option: Infiltration|3.92 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_10pct_from_6
+        option: Infiltration|4.70 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_10pct_from_7
+        option: Infiltration|5.48 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_10pct_from_8
+        option: Infiltration|6.26 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_10pct_from_10
+        option: Infiltration|7.83 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_10pct_from_15
+        option: Infiltration|11.75 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_10pct_from_20
+        option: Infiltration|15.66 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_10pct_from_25
+        option: Infiltration|19.58 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_10pct_from_30
+        option: Infiltration|23.49 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_10pct_from_40
+        option: Infiltration|31.32 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_10pct_from_50
+        option: Infiltration|39.15 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+
+      # 8% reduction for attic and 21% ACH50 reduction for low-E storm windows on single pane
+      # 1) Vented Crawlspace
+      # 2) Without polyiso upgrade
+      - &decrease_ACH50_8pct_and_21pct_from_1
+        option: Infiltration|0.73 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_21pct_from_2
+        option: Infiltration|1.45 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_21pct_from_3
+        option: Infiltration|2.18 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_21pct_from_4
+        option: Infiltration|2.91 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_21pct_from_5
+        option: Infiltration|3.63 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_21pct_from_6
+        option: Infiltration|4.36 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_21pct_from_7
+        option: Infiltration|5.09 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_21pct_from_8
+        option: Infiltration|5.81 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_21pct_from_10
+        option: Infiltration|7.27 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_21pct_from_15
+        option: Infiltration|10.90 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_21pct_from_20
+        option: Infiltration|14.54 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_21pct_from_25
+        option: Infiltration|18.17 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_21pct_from_30
+        option: Infiltration|21.80 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_21pct_from_40
+        option: Infiltration|29.07 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_21pct_from_50
+        option: Infiltration|36.34 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      
+      # 8% reduction for attic and 7% ACH50 reduction for low-E storm windows on double pane
+      # 1) Vented Crawlspace
+      # 2) Without polyiso upgrade
+      - &decrease_ACH50_8pct_and_7pct_from_1
+        option: Infiltration|0.86 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_7pct_from_2
+        option: Infiltration|1.71 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_7pct_from_3
+        option: Infiltration|2.57 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_7pct_from_4
+        option: Infiltration|3.42 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_7pct_from_5
+        option: Infiltration|4.28 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_7pct_from_6
+        option: Infiltration|5.13 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_7pct_from_7
+        option: Infiltration|5.99 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_7pct_from_8
+        option: Infiltration|6.84 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_7pct_from_10
+        option: Infiltration|8.56 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_7pct_from_15
+        option: Infiltration|12.83 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_7pct_from_20
+        option: Infiltration|17.11 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_7pct_from_25
+        option: Infiltration|21.39 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_7pct_from_30
+        option: Infiltration|25.67 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_7pct_from_40
+        option: Infiltration|34.22 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_7pct_from_50
+        option: Infiltration|42.78 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+            - not:
+              - or: *upgradable_walls
+              - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      
+      ## ACH50 reduction for WALL AND ATTIC UPGRADE ONLY##
+      # 13% reduction for attic and 19% ACH50 reduction for 1" wall insulation upgrade
+      # 1) Other than Vented Crawlspace
+      # 2) Without Windows upgrade
+      - &decrease_ACH50_13pct_and_19pct_from_1
+        option: Infiltration|0.70 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_19pct_from_2
+        option: Infiltration|1.41 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_19pct_from_3
+        option: Infiltration|2.11 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_19pct_from_4
+        option: Infiltration|2.82 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_19pct_from_5
+        option: Infiltration|3.52 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_19pct_from_6
+        option: Infiltration|4.23 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_19pct_from_7
+        option: Infiltration|4.93 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_19pct_from_8
+        option: Infiltration|5.64 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_19pct_from_10
+        option: Infiltration|7.05 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_19pct_from_15
+        option: Infiltration|10.57 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_19pct_from_20
+        option: Infiltration|14.09 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_19pct_from_25
+        option: Infiltration|17.62 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_19pct_from_30
+        option: Infiltration|21.14 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_19pct_from_40
+        option: Infiltration|28.14 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_and_19pct_from_50
+        option: Infiltration|35.24 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+
+      # 8% reduction for attic and 13% ACH50 reduction for 1" wall insulation upgrade
+      # 1) Vented Crawlspace
+      # 2) Without Windows upgrade
+      - &decrease_ACH50_8pct_and_13pct_from_1
+        option: Infiltration|0.80 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_13pct_from_2
+        option: Infiltration|1.60 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_13pct_from_3
+        option: Infiltration|2.40 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_13pct_from_4
+        option: Infiltration|3.20 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_13pct_from_5
+        option: Infiltration|4 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_13pct_from_6
+        option: Infiltration|4.8 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_13pct_from_7
+        option: Infiltration|5.6 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_13pct_from_8
+        option: Infiltration|6.4 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_13pct_from_10
+        option: Infiltration|8 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_13pct_from_15
+        option: Infiltration|12 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_13pct_from_20
+        option: Infiltration|16 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_13pct_from_25
+        option: Infiltration|20 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_13pct_from_30
+        option: Infiltration|24 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_13pct_from_40
+        option: Infiltration|32 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_and_13pct_from_50
+        option: Infiltration|40 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - not: *upgradable_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      
+      ## ACH50 reduction for ALL WALL, ATTIC, AND WINDOW UPGRADE ONLY##
+      # 13% reduction for attic, 19% reduction for 1" wall insulation, and 30% for Single-pane window upgrade
+      # 1) Other than Vented Crawlspace
+      # 2) With Single-pane window upgrade
+      - &decrease_ACH50_13pct_19pct_and_30pct_from_1
+        option: Infiltration|0.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_30pct_from_2
+        option: Infiltration|1 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_30pct_from_3
+        option: Infiltration|1.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_30pct_from_4
+        option: Infiltration|1.97 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_30pct_from_5
+        option: Infiltration|2.47 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_30pct_from_6
+        option: Infiltration|2.96 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_30pct_from_7
+        option: Infiltration|3.45 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_30pct_from_8
+        option: Infiltration|3.95 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_30pct_from_10
+        option: Infiltration|4.93 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_30pct_from_15
+        option: Infiltration|7.40 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_30pct_from_20
+        option: Infiltration|9.87 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_30pct_from_25
+        option: Infiltration|12.33 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_30pct_from_30
+        option: Infiltration|14.80 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_30pct_from_40
+        option: Infiltration|19.73 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_30pct_from_50
+        option: Infiltration|24.66 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+
+      # 13% reduction for attic, 19% reduction for 1" wall insulation, and 10% for Double-pane window upgrade
+      # 1) Other than Vented Crawlspace
+      # 2) With Double-pane window upgrade
+      - &decrease_ACH50_13pct_19pct_and_10pct_from_1
+        option: Infiltration|0.63 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_10pct_from_2
+        option: Infiltration|1.27 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_10pct_from_3
+        option: Infiltration|1.90 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_10pct_from_4
+        option: Infiltration|2.54 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_10pct_from_5
+        option: Infiltration|3.17 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_10pct_from_6
+        option: Infiltration|3.81 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_10pct_from_7
+        option: Infiltration|4.44 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_10pct_from_8
+        option: Infiltration|5.07 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_10pct_from_10
+        option: Infiltration|6.34 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_10pct_from_15
+        option: Infiltration|9.51 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_10pct_from_20
+        option: Infiltration|12.68 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_10pct_from_25
+        option: Infiltration|15.86 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_10pct_from_30
+        option: Infiltration|19.03 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_10pct_from_40
+        option: Infiltration|25.37 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_13pct_19pct_and_10pct_from_50
+        option: Infiltration|31.71 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - not: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+
+      # 8% reduction for attic, 13% reduction for 1" wall insulation, and 21% for Double-pane window upgrade
+      # 1) Vented Crawlspace
+      # 2) With Single-pane window upgrade
+      - &decrease_ACH50_8pct_13pct_and_21pct_from_1
+        option: Infiltration|0.63 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_21pct_from_2
+        option: Infiltration|1.27 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_21pct_from_3
+        option: Infiltration|1.90 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_21pct_from_4
+        option: Infiltration|2.54 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_21pct_from_5
+        option: Infiltration|3.17 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_21pct_from_6
+        option: Infiltration|3.81 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_21pct_from_7
+        option: Infiltration|4.44 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_21pct_from_8
+        option: Infiltration|5.07 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_21pct_from_10
+        option: Infiltration|6.34 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_21pct_from_15
+        option: Infiltration|9.51 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_21pct_from_20
+        option: Infiltration|12.68 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_21pct_from_25
+        option: Infiltration|15.86 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_21pct_from_30
+        option: Infiltration|19.03 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_21pct_from_40
+        option: Infiltration|25.37 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_21pct_from_50
+        option: Infiltration|31.71 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *single_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      
+      # 8% reduction for attic, 13% reduction for 1" wall insulation, and 7% for Double-pane window upgrade
+      # 1) Vented Crawlspace
+      # 2) With Double-pane window upgrade
+      - &decrease_ACH50_8pct_13pct_and_7pct_from_1
+        option: Infiltration|0.74 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_7pct_from_2
+        option: Infiltration|1.49 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_7pct_from_3
+        option: Infiltration|2.23 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_7pct_from_4
+        option: Infiltration|2.98 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_7pct_from_5
+        option: Infiltration|3.72 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_7pct_from_6
+        option: Infiltration|4.47 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_7pct_from_7
+        option: Infiltration|5.21 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_7pct_from_8
+        option: Infiltration|5.95 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_7pct_from_10
+        option: Infiltration|7.44 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_7pct_from_15
+        option: Infiltration|11.17 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_7pct_from_20
+        option: Infiltration|14.89 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_7pct_from_25
+        option: Infiltration|18.61 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_7pct_from_30
+        option: Infiltration|22.33 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_7pct_from_40
+        option: Infiltration|29.77 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - &decrease_ACH50_8pct_13pct_and_7pct_from_50
+        option: Infiltration|37.22 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+            - or: *upgradable_walls
+            - not: *vintage_exclusions
+            - or: *double_pane_windows
+            - or: *upgradable_attic
+            - or: *vented_crawlspace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      # - &reference_options
+      #   option: 
+      #   apply_logic:
+      #   costs:
+      #     - value: 
+      #       multiplier:
+      #   lifetime:
+      # - &reference_options
+      #   option: 
+      #   apply_logic:
+      #   costs:
+      #     - value: 
+      #       multiplier:
+      #   lifetime:

@@ -1,0 +1,98 @@
+schema_version: '0.3'
+buildstock_directory: /home/epresent/resstock  # Relative to this file or absolute
+project_directory: project_national  # Relative to buildstock_directory
+output_directory: /projects/resilience/facades/test_references10
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_2012_FIPS.zip  # Relative to this file or absolute path to zipped weather files
+
+sampler:
+  type: residential_quota_downselect
+  args:
+    n_datapoints: 10
+    logic:
+      - Vacancy Status|Occupied
+    resample: false
+
+workflow_generator:
+  type: residential_default
+  args:
+    timeseries_csv_export:
+      reporting_frequency: Hourly
+      include_enduse_subcategories: true
+    residential_simulation_controls:
+      calendar_year: 2012
+
+baseline:
+  n_buildings_represented: 133172057  # Total number of residential dwelling units in contiguous United States, including unoccupied units, resulting from a census tract level query of ACS 5-yr 2016 (i.e. 2012-2016), using this script: https://github.com/NREL/resstock-estimation/blob/master/sources/spatial/tsv_maker.py.
+
+upgrades:
+  - upgrade_name: LEDs for All
+    options:
+      - &leds
+        option: Lighting|100% LED
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|60% CFL Hardwired, 34% CFL Plugin
+            - Lighting|60% CFL
+            - Lighting|100% CFL
+            - Lighting|20% LED
+            - Lighting|100% LED, Low Efficacy
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+  - upgrade_name: Advanced ref
+    options:
+      - &refrigerators
+        option: Refrigerator|EF 21.9
+        apply_logic: 
+          or:
+            - Refrigerator|EF 19.9
+            - Refrigerator|EF 17.6
+            - Refrigerator|EF 15.9
+            - Refrigerator|EF 10.5
+            - Refrigerator|EF 10.2
+            - Refrigerator|EF 6.7
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 17.4
+  - upgrade_name: LEDs and Advanced ref
+    options:
+      - *leds
+      - *refrigerators
+
+eagle:
+  n_jobs: 8
+  minutes_per_sim: 30
+  account: resilience
+  sampling:
+    time: 60
+  postprocessing:
+    time: 180
+    n_workers: 1
+
+aws:
+  # The job_identifier should be unique, start with alpha, not include dashes, and limited to 10 chars or data loss can occur
+  job_identifier: fac_1
+  s3:
+    bucket: resbldg-datasets
+    prefix: facades/test_references10
+  emr:
+    worker_instance_count: 1
+  region: us-west-2
+  use_spot: true
+  batch_array_size: 1000
+  # To receive email updates on job progress accept the request to receive emails that will be sent from Amazon
+  notifications_email: noel.merket@nrel.gov
+
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: resbldg-datasets
+      prefix: resstock-athena/facades-test_references10
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: resstock-test_references10
+      max_crawling_time: 1200 #time to wait for the crawler to complete before aborting it

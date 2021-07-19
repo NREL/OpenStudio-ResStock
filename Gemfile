@@ -5,7 +5,7 @@ gem 'colored', '~> 1.2'
 gem 'git', require: false
 gem 'json', '~> 1.8'
 gem 'ffi', '~> 1.9.18'
-gem 'openstudio-standards', '0.2.9'
+gem 'openstudio-standards', '0.2.10'
 gem 'aes', '~> 0.5.0'
 gem 'geocoder', '~> 1.4.4'
 gem 'highline', '~> 2.0.3'

@@ -42,10 +42,6 @@ jobs:
         run: |
           rake test:project_tests
 
-      - name: Run all regression tests
-        run: |
-          rake test:regression_tests
-
       - name: Run all integration tests
         run: |
           rake test:integration_tests
@@ -55,12 +51,6 @@ jobs:
         with:
           path: resources/buildstock.csv
           name: samples
-
-      - name: Upload regression results
-        uses: actions/upload-artifact@v2
-        with:
-          path: workflows/results
-          name: examples
 
       - name: Upload integration results
         uses: actions/upload-artifact@v2

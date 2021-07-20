@@ -14,15 +14,15 @@ class ProcessConstructionsWindowsSkylightsTest < MiniTest::Test
     args_hash['window_cool_shade_mult'] = 1
     expected_num_del_objects = {}
     expected_num_new_objects = { 'SimpleGlazing' => 1, 'Construction' => 1 }
-    expected_values = { 'shgc' => 0.3, 'ufactor' => 0.37, 'SubSurfacesWithConstructions' => 36, 'SubSurfacesWithShadingControls' => 0 }
+    expected_values = { 'shgc' => 0.3, 'ufactor' => 0.37, 'SubSurfacesWithConstructions' => 36 }
     result = _test_measure('SFD_2000sqft_2story_SL_UA_Denver_Windows.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
   def test_retrofit_replace
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { 'SimpleGlazing' => 1, 'Construction' => 1, 'ShadingControl' => 1, 'WindowMaterialShade' => 1, 'ScheduleRuleset' => 1 }
-    expected_values = { 'shgc' => 0.3 * 0.7, 'ufactor' => 0.37, 'SubSurfacesWithConstructions' => 36, 'SubSurfacesWithShadingControls' => 36 }
+    expected_num_new_objects = { 'SimpleGlazing' => 1, 'Construction' => 1, 'ShadingSurface' => 36, 'ShadingSurfaceGroup' => 1, 'ScheduleRuleset' => 1 }
+    expected_values = { 'shgc' => 0.3, 'ufactor' => 0.37, 'SubSurfacesWithConstructions' => 36 }
     model = _test_measure('SFD_2000sqft_2story_SL_UA_Denver_Windows.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash['window_ufactor'] = 0.20
@@ -31,23 +31,23 @@ class ProcessConstructionsWindowsSkylightsTest < MiniTest::Test
     args_hash['window_cool_shade_mult'] = 1
     expected_num_del_objects = expected_num_new_objects
     expected_num_new_objects = { 'SimpleGlazing' => 1, 'Construction' => 1 }
-    expected_values = { 'shgc' => 0.5, 'ufactor' => 0.20, 'SubSurfacesWithConstructions' => 36, 'SubSurfacesWithShadingControls' => 0 }
+    expected_values = { 'shgc' => 0.5, 'ufactor' => 0.20, 'SubSurfacesWithConstructions' => 36 }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
   def test_single_family_attached_new_construction
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { 'SimpleGlazing' => 1, 'Construction' => 1, 'ShadingControl' => 1, 'WindowMaterialShade' => 1, 'ScheduleRuleset' => 1 }
-    expected_values = { 'shgc' => 0.3 * 0.7, 'ufactor' => 0.37, 'SubSurfacesWithConstructions' => 12, 'SubSurfacesWithShadingControls' => 12 }
+    expected_num_new_objects = { 'SimpleGlazing' => 1, 'Construction' => 1, 'ShadingSurface' => 12, 'ShadingSurfaceGroup' => 1, 'ScheduleRuleset' => 1 }
+    expected_values = { 'shgc' => 0.3, 'ufactor' => 0.37, 'SubSurfacesWithConstructions' => 12 }
     _test_measure('SFA_4units_1story_SL_UA_Denver_Windows_Doors.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
   def test_multifamily_new_construction
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { 'SimpleGlazing' => 1, 'Construction' => 1, 'ShadingControl' => 1, 'WindowMaterialShade' => 1, 'ScheduleRuleset' => 1 }
-    expected_values = { 'shgc' => 0.3 * 0.7, 'ufactor' => 0.37, 'SubSurfacesWithConstructions' => 9, 'SubSurfacesWithShadingControls' => 9 }
+    expected_num_new_objects = { 'SimpleGlazing' => 1, 'Construction' => 1, 'ShadingSurface' => 9, 'ShadingSurfaceGroup' => 1, 'ScheduleRuleset' => 1 }
+    expected_values = { 'shgc' => 0.3, 'ufactor' => 0.37, 'SubSurfacesWithConstructions' => 9 }
     _test_measure('MF_8units_1story_SL_Denver_Windows_Doors.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -84,8 +84,8 @@ class ProcessConstructionsWindowsSkylightsTest < MiniTest::Test
     args_hash['skylight_heat_shade_mult'] = 0.7
     args_hash['skylight_cool_shade_mult'] = 0.7
     expected_num_del_objects = {}
-    expected_num_new_objects = { 'SimpleGlazing' => 2, 'Construction' => 2, 'ShadingControl' => 2, 'WindowMaterialShade' => 1, 'ScheduleRuleset' => 2 }
-    expected_values = { 'shgc' => 0.3 * 0.7 + 0.5 * 0.7, 'ufactor' => 0.37 + 0.20, 'SubSurfacesWithConstructions' => 34, 'SubSurfacesWithShadingControls' => 34 }
+    expected_num_new_objects = { 'SimpleGlazing' => 2, 'Construction' => 2, 'ShadingSurface' => 34, 'ShadingSurfaceGroup' => 1, 'ScheduleRuleset' => 2 }
+    expected_values = { 'shgc' => 0.3 + 0.5, 'ufactor' => 0.37 + 0.20 / 1.2, 'SubSurfacesWithConstructions' => 34 }
     result = _test_measure('SFD_2000sqft_2story_SL_FA_Denver_Windows_Skylights.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -175,7 +175,7 @@ class ProcessConstructionsWindowsSkylightsTest < MiniTest::Test
     check_num_objects(all_new_objects, expected_num_new_objects, 'added')
     check_num_objects(all_del_objects, expected_num_del_objects, 'deleted')
 
-    actual_values = { 'shgc' => 0, 'ufactor' => 0, 'SubSurfacesWithConstructions' => 0, 'SubSurfacesWithShadingControls' => 0 }
+    actual_values = { 'shgc' => 0, 'ufactor' => 0, 'SubSurfacesWithConstructions' => 0 }
     all_new_objects.each do |obj_type, new_objects|
       new_objects.each do |new_object|
         next if not new_object.respond_to?("to_#{obj_type}")
@@ -192,20 +192,12 @@ class ProcessConstructionsWindowsSkylightsTest < MiniTest::Test
 
             actual_values['SubSurfacesWithConstructions'] += 1
           end
-        elsif obj_type == 'ShadingControl'
-          model.getSubSurfaces.each do |sub_surface|
-            next unless sub_surface.shadingControl.is_initialized
-            next unless sub_surface.shadingControl.get == new_object
-
-            actual_values['SubSurfacesWithShadingControls'] += 1
-          end
         end
       end
     end
     assert_in_epsilon(expected_values['shgc'], actual_values['shgc'], 0.01)
     assert_in_epsilon(expected_values['ufactor'], actual_values['ufactor'], 0.01)
     assert_equal(expected_values['SubSurfacesWithConstructions'], actual_values['SubSurfacesWithConstructions'])
-    assert_equal(expected_values['SubSurfacesWithShadingControls'], actual_values['SubSurfacesWithShadingControls'])
 
     return model
   end

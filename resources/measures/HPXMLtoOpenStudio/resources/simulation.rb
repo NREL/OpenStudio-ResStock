@@ -9,8 +9,14 @@ class Simulation
     tstep.setNumberOfTimestepsPerHour(timesteps_per_hr) # Timesteps/hour
 
     shad = model.getShadowCalculation
-    shad.setShadingCalculationUpdateFrequency(20)
     shad.setMaximumFiguresInShadowOverlapCalculations(200)
+    # Detailed diffuse algorithm is required for window interior shading with varying
+    # transmittance schedules
+    shad.setSkyDiffuseModelingAlgorithm('DetailedSkyDiffuseModeling')
+    # Use EnergyPlus default of 20 days for update frequency; it is a reasonable balance
+    # between speed and accuracy (e.g., sun position, picking up any change in window
+    # interior shading transmittance, etc.).
+    shad.setShadingCalculationUpdateFrequency(20)
 
     outsurf = model.getOutsideSurfaceConvectionAlgorithm
     outsurf.setAlgorithm('DOE-2')

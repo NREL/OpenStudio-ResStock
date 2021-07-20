@@ -1224,6 +1224,10 @@ class Constants
     return __method__.to_s
   end
 
+  def self.SizingInfoWindowSummerShadingFactor
+    return __method__.to_s
+  end
+
   def self.SizingInfoWindowOverhangOffset
     return __method__.to_s
   end

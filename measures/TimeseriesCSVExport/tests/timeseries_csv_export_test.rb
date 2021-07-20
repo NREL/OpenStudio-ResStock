@@ -107,7 +107,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash['reporting_frequency'] = 'RunPeriod'
     args_hash['include_enduse_subcategories'] = 'false'
     args_hash['output_variables'] = 'Surface Outside Normal Azimuth Angle, Surface Window Heat Gain Rate'
-    expected_values = { 'EnduseTimeseriesLength' => 1, 'EnduseTimeseriesWidth' => @@include_enduse_subcategories[args_hash['include_enduse_subcategories']] + 71 }
+    expected_values = { 'EnduseTimeseriesLength' => 1, 'EnduseTimeseriesWidth' => @@include_enduse_subcategories[args_hash['include_enduse_subcategories']] + 93 }
     _test_measure('SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm', args_hash, expected_values, __method__, 'USA_CO_Denver.Intl.AP.725650_TMY3.epw', '8760.csv', num_output_requests)
   end
 

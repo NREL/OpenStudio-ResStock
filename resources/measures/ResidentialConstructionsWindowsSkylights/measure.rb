@@ -128,30 +128,81 @@ class ProcessConstructionsWindowsSkylights < OpenStudio::Measure::ModelMeasure
       return false
     end
 
+    if (window_heat_shade_mult < 0) || (window_heat_shade_mult > 1)
+      runner.registerError('Window Heating Shade Multiplier must be greater than or equal to zero and less than or equal to one.')
+      return false
+    end
+    if (window_cool_shade_mult < 0) || (window_cool_shade_mult > 1)
+      runner.registerError('Window Cooling Shade Multiplier must be greater than or equal to zero and less than or equal to one.')
+      return false
+    end
+    if (skylight_heat_shade_mult < 0) || (skylight_heat_shade_mult > 1)
+      runner.registerError('Skylight Heating Shade Multiplier must be greater than or equal to zero and less than or equal to one.')
+      return false
+    end
+    if (skylight_cool_shade_mult < 0) || (skylight_cool_shade_mult > 1)
+      runner.registerError('Skylight Cooling Shade Multiplier must be greater than or equal to zero and less than or equal to one.')
+      return false
+    end
+
     window_subsurfaces = []
     skylight_subsurfaces = []
     model.getSubSurfaces.each do |subsurface|
       if subsurface.subSurfaceType.downcase.include? 'window'
         window_subsurfaces << subsurface
+        subsurface.additionalProperties.setFeature(Constants.SizingInfoWindowSummerShadingFactor, window_cool_shade_mult.to_f)
       elsif subsurface.subSurfaceType.downcase.include? 'skylight'
         skylight_subsurfaces << subsurface
+        subsurface.additionalProperties.setFeature(Constants.SizingInfoWindowSummerShadingFactor, skylight_cool_shade_mult.to_f)
+      end
+    end
+
+    # Remove any existing window/skylight shading
+    model.getShadingSurfaceGroups.each do |shading_group|
+      next unless shading_group.name.to_s == 'window and skylight shading group'
+
+      shading_group.remove
+    end
+    model.getSchedules.each do |schedule|
+      next unless ['window shading schedule', 'skylight shading schedule'].include? schedule.name.to_s
+
+      schedule.remove
+    end
+
+    shading_group = nil
+
+    # Apply constructions
+    if not SubsurfaceConstructions.apply_window(runner, model, window_subsurfaces, 'WindowConstruction', window_ufactor, window_shgc)
+      return false
+    end
+
+    # Apply interior shading (as needed)
+    if (window_cool_shade_mult < 1.0) || (window_heat_shade_mult < 1.0)
+      window_schedule = nil
+      window_subsurfaces.each do |sub_surface|
+        trans_values = cooling_season.map { |c| c == 1 ? window_cool_shade_mult : window_heat_shade_mult }
+        if window_schedule.nil?
+          window_schedule = MonthWeekdayWeekendSchedule.new(model, runner, 'window shading schedule', Array.new(24, 1), Array.new(24, 1), trans_values, 1.0, 1.0, false)
+        end
+        shading_group = apply_interior_shading(model, sub_surface, shading_group, window_schedule, trans_values)
       end
     end
 
     # Apply constructions
-    if not SubsurfaceConstructions.apply_window(runner, model, window_subsurfaces,
-                                                'WindowConstruction',
-                                                weather, cooling_season, window_ufactor, window_shgc,
-                                                window_heat_shade_mult, window_cool_shade_mult)
+    if not SubsurfaceConstructions.apply_skylight(runner, model, skylight_subsurfaces, 'SkylightConstruction', skylight_ufactor, skylight_shgc)
       return false
     end
 
-    # Apply constructions
-    if not SubsurfaceConstructions.apply_skylight(runner, model, skylight_subsurfaces,
-                                                  'SkylightConstruction',
-                                                  weather, cooling_season, skylight_ufactor, skylight_shgc,
-                                                  skylight_heat_shade_mult, skylight_cool_shade_mult)
-      return false
+    # Apply interior shading (as needed)
+    if (skylight_cool_shade_mult < 1.0) || (skylight_heat_shade_mult < 1.0)
+      skylight_schedule = nil
+      skylight_subsurfaces.each do |sub_surface|
+        trans_values = cooling_season.map { |c| c == 1 ? skylight_cool_shade_mult : skylight_heat_shade_mult }
+        if skylight_schedule.nil?
+          skylight_schedule = MonthWeekdayWeekendSchedule.new(model, runner, 'skylight shading schedule', Array.new(24, 1), Array.new(24, 1), trans_values, 1.0, 1.0, false)
+        end
+        shading_group = apply_interior_shading(model, sub_surface, shading_group, skylight_schedule, trans_values)
+      end
     end
 
     # Remove any constructions/materials that aren't used
@@ -163,7 +214,35 @@ class ProcessConstructionsWindowsSkylights < OpenStudio::Measure::ModelMeasure
     return true
   end # end the run method
 
-  def get_window_sub_surfaces(model)
+  def apply_interior_shading(model, sub_surface, shading_group, shading_schedule, trans_values)
+    # We use a ShadingSurface instead of a Shade so that we perfectly get the result we want.
+    # The latter object is complex and it is essentially impossible to achieve the target reduction in transmitted
+    # solar (due to, e.g., re-reflectance, absorptance, angle modifiers, effects on convection, etc.).
+
+    # Shading surface is used to reduce beam solar and sky diffuse solar
+    vertices = OpenStudio::Point3dVector.new
+    space = sub_surface.surface.get.space.get
+    sub_surface.vertices.each do |v|
+      vertices << OpenStudio::Point3d.new(v.x + space.xOrigin, v.y + space.yOrigin, v.z + space.zOrigin)
+    end
+    shading_surface = OpenStudio::Model::ShadingSurface.new(vertices, model)
+    shading_surface.setName("#{sub_surface.name} shading surface")
+
+    # Create transmittance schedule for heating/cooling seasons
+    shading_surface.setTransmittanceSchedule(shading_schedule.schedule)
+
+    # Adjustment to default view factor is used to reduce ground diffuse solar
+    parent_surface = sub_surface.surface.get
+    avg_trans_value = trans_values.sum(0.0) / 12.0
+    default_vf_to_ground = ((1.0 - Math::cos(parent_surface.tilt)) / 2.0).round(2)
+    sub_surface.setViewFactortoGround(default_vf_to_ground * avg_trans_value)
+
+    if shading_group.nil?
+      shading_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
+      shading_group.setName('window and skylight shading group')
+    end
+    shading_surface.setShadingSurfaceGroup(shading_group)
+    return shading_group
   end
 end # end the measure
 

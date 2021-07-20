@@ -623,15 +623,18 @@ class HVACSizing
         next if not window.subSurfaceType.downcase.include?('window')
 
         # U-factor
-        u_window = get_surface_ufactor(runner, window, window.subSurfaceType, true)
+        u_window = get_surface_ufactor(runner, window, window.subSurfaceType, true) * 1.2
         return nil if u_window.nil?
 
         zone_loads.Heat_Windows += u_window * UnitConversions.convert(window.grossArea, 'm^2', 'ft^2') * htd
         zone_loads.Dehumid_Windows += u_window * UnitConversions.convert(window.grossArea, 'm^2', 'ft^2') * mj8.dtd
 
         # SHGC & Internal Shading
-        shgc_with_interior_shade_cool, shgc_with_interior_shade_heat = get_fenestration_shgc(runner, window)
-        return nil if shgc_with_interior_shade_cool.nil? || shgc_with_interior_shade_heat.nil?
+        shgc = get_fenestration_shgc(runner, window)
+        return nil if shgc.nil?
+
+        summer_sf = get_feature(runner, window, Constants.SizingInfoWindowSummerShadingFactor, 'double')
+        return nil if summer_sf.nil?
 
         windowHeight = Geometry.surface_height(window)
         windowHasIntShading = window.shadingControl.is_initialized
@@ -681,10 +684,10 @@ class HVACSizing
           end
 
           # Hourly Heat Transfer Multiplier for the given window Direction
-          htm_d = psf_lat[cnt225] * clf_d * shgc_with_interior_shade_cool / 0.87 + u_window * ctd
+          htm_d = psf_lat[cnt225] * clf_d * shgc * summer_sf / 0.87 + u_window * ctd
 
           # Hourly Heat Transfer Multiplier for a window facing North (fully shaded)
-          htm_n = psf_lat[8] * clf_n * shgc_with_interior_shade_cool / 0.87 + u_window * ctd
+          htm_n = psf_lat[8] * clf_n * shgc * summer_sf / 0.87 + u_window * ctd
 
           if wall_true_azimuth < 180
             surf_azimuth = wall_true_azimuth
@@ -790,8 +793,11 @@ class HVACSizing
         zone_loads.Dehumid_Skylights += u_skylight * UnitConversions.convert(skylight.grossArea, 'm^2', 'ft^2') * mj8.dtd
 
         # SHGC & Internal Shading
-        shgc_with_interior_shade_cool, shgc_with_interior_shade_heat = get_fenestration_shgc(runner, skylight)
-        return nil if shgc_with_interior_shade_cool.nil? || shgc_with_interior_shade_heat.nil?
+        shgc = get_fenestration_shgc(runner, skylight)
+        return nil if shgc.nil?
+
+        summer_sf = get_feature(runner, skylight, Constants.SizingInfoWindowSummerShadingFactor, 'double')
+        return nil if summer_sf.nil?
 
         skylightHasIntShading = skylight.shadingControl.is_initialized
 
@@ -833,7 +839,7 @@ class HVACSizing
           u_curb = 0.51 # default to wood (Table 2B-3)
           ar_curb = 0.35 # default to small (Table 2B-3)
           u_eff_skylight = u_skylight + u_curb * ar_curb
-          htm = (sol_h + sol_v) * (shgc_with_interior_shade_cool / 0.87) + u_eff_skylight * (ctd + 15)
+          htm = (sol_h + sol_v) * (shgc * summer_sf / 0.87) + u_eff_skylight * (ctd + 15)
 
           if hr == -1
             alp_load += htm * UnitConversions.convert(skylight.grossArea, 'm^2', 'ft^2')
@@ -2518,26 +2524,7 @@ class HVACSizing
     simple_glazing = get_window_simple_glazing(runner, surface, true)
     return if simple_glazing.nil?
 
-    shgc_with_interior_shade_heat = simple_glazing.solarHeatGainCoefficient
-
-    int_shade_heat_to_cool_ratio = 1.0
-    if surface.shadingControl.is_initialized
-      shading_control = surface.shadingControl.get
-      if shading_control.shadingMaterial.is_initialized
-        shading_material = shading_control.shadingMaterial.get
-        if shading_material.to_Shade.is_initialized
-          shade = shading_material.to_Shade.get
-          int_shade_heat_to_cool_ratio = shade.solarTransmittance
-        else
-          runner.registerError("Unhandled shading material: #{shading_material.name}.")
-          return
-        end
-      end
-    end
-
-    shgc_with_interior_shade_cool = shgc_with_interior_shade_heat * int_shade_heat_to_cool_ratio
-
-    return [shgc_with_interior_shade_cool, shgc_with_interior_shade_heat]
+    return simple_glazing.solarHeatGainCoefficient
   end
 
   def self.calc_heat_cfm(load, acf, heat_setpoint, htg_supply_air_temp)

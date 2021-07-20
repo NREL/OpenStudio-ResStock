@@ -162,6 +162,7 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
     model.getSpaceTypes.each do |space_type|
       space_type.spaces.each do |space|
         next if space.thermalZone.is_initialized
+
         thermal_zone = OpenStudio::Model::ThermalZone.new(model)
         thermal_zone.setName(space.name.to_s)
         space.setThermalZone(thermal_zone)

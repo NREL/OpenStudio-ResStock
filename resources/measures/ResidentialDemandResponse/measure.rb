@@ -114,6 +114,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     finished_zones.each do |finished_zone|
       thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
       next unless !thermostat_setpoint.is_initialized
+
       runner.registerInfo('No thermostat setpoint defined, skipping demand response applied')
       return true
       break
@@ -203,6 +204,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     offset_list = [dr_hrly_htg, dr_hrly_clg]
     offset_list.each do |dr|
       next unless dr != []
+
       dr_list << dr
       if not check_DR_sched(dr, model, runner)
         return false
@@ -217,6 +219,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     ct = 0
     dr_list.each do |dr_hrly|
       next unless ((dr_hrly.to_a.max() == 0) & (dr_hrly.to_a.min() == 0))
+
       ct += 1
       if ct == dr_list.length
         runner.registerInfo('DR schedules contain only zeros, no thermostat DR applied')
@@ -232,6 +235,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       finished_zones.each do |finished_zone|
         thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
         next unless thermostat_setpoint.is_initialized
+
         thermostat_setpoint = thermostat_setpoint.get
         runner.registerInfo("Found existing thermostat #{thermostat_setpoint.name} for #{finished_zone.name}.")
 
@@ -374,6 +378,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     finished_zones.each do |finished_zone|
       thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
       next unless thermostat_setpoint.is_initialized
+
       thermostat_setpoint = thermostat_setpoint.get
       thermostat_setpoint.resetHeatingSetpointTemperatureSchedule()
       thermostat_setpoint.resetCoolingSetpointTemperatureSchedule()
@@ -390,6 +395,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     finished_zones.each do |finished_zone|
       thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
       next unless thermostat_setpoint.is_initialized
+
       thermostat_setpoint = thermostat_setpoint.get
       thermostat_setpoint.setHeatingSetpointTemperatureSchedule(rule_sched_h)
       runner.registerInfo("Set the heating setpoint schedule for #{thermostat_setpoint.name}.")

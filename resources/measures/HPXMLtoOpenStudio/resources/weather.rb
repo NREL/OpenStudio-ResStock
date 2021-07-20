@@ -721,6 +721,7 @@ class WeatherProcess
     cool_wetbulb = []
     for i in 0..(annual_hd_sorted_by_db.size - 1)
       next unless (annual_hd_sorted_by_db[i]['db'] > cool01per_db - 0.5) && (annual_hd_sorted_by_db[i]['db'] < cool01per_db + 0.5)
+
       cool_windspeed << annual_hd_sorted_by_db[i]['ws']
       wb = Psychrometrics.Twb_fT_R_P(UnitConversions.convert(annual_hd_sorted_by_db[i]['db'], 'C', 'F'), annual_hd_sorted_by_db[i]['rh'], std_press)
       cool_wetbulb << wb

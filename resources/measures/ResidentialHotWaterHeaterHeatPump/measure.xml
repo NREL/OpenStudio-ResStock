@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_hot_water_heater_heat_pump</name>
   <uid>cfbe1e78-78db-4902-aba3-95d23310802e</uid>
-  <version_id>61711cd8-b11a-4a66-be08-23a3ad31ca81</version_id>
-  <version_modified>20210602T232058Z</version_modified>
+  <version_id>e2436070-62e8-4ac5-b9b1-b7d78472d862</version_id>
+  <version_modified>20210616T203305Z</version_modified>
   <xml_checksum>9882CBDB</xml_checksum>
   <class_name>ResidentialHotWaterHeaterHeatPump</class_name>
   <display_name>Set Residential Heat Pump Water Heater</display_name>
@@ -21,6 +21,25 @@
       <default_value>50</default_value>
     </argument>
     <argument>
+      <name>setpoint_type</name>
+      <display_name>Setpoint type</display_name>
+      <description>The water heater setpoint type. The 'constant' option will use a constant value for the whole year, while 'scheduled' will use 8760 values in a schedule file.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>constant</default_value>
+      <choices>
+        <choice>
+          <value>constant</value>
+          <display_name>constant</display_name>
+        </choice>
+        <choice>
+          <value>scheduled</value>
+          <display_name>scheduled</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>setpoint_temp</name>
       <display_name>Setpoint</display_name>
       <description>Water heater setpoint temperature.</description>
@@ -31,12 +50,77 @@
       <default_value>125</default_value>
     </argument>
     <argument>
+      <name>operating_mode_type</name>
+      <display_name>Operating mode type</display_name>
+      <description>The water heater operating mode type. The 'constant' option will use a constant control strategy for the whole year, while 'scheduled' will use 8760 values in a schedule file.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>constant</default_value>
+      <choices>
+        <choice>
+          <value>constant</value>
+          <display_name>constant</display_name>
+        </choice>
+        <choice>
+          <value>scheduled</value>
+          <display_name>scheduled</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>operating_mode</name>
+      <display_name>Operating Mode</display_name>
+      <description>The water heater operating mode. The 'heat pump only' option only uses the heat pump, while 'standard' allows the backup electric resistance to come on in high demand situations. This is ignored if a scheduled operating mode type is selected.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>standard</default_value>
+      <choices>
+        <choice>
+          <value>standard</value>
+          <display_name>standard</display_name>
+        </choice>
+        <choice>
+          <value>heat pump only</value>
+          <display_name>heat pump only</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>schedules_directory</name>
+      <display_name>Setpoint and Operating Mode Schedule Directory</display_name>
+      <description>Absolute (or relative) directory to schedule files. This argument will be ignored if a constant setpoint type is used instead.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>./resources</default_value>
+    </argument>
+    <argument>
+      <name>setpoint_schedule</name>
+      <display_name>Setpoint Schedule File Name</display_name>
+      <description>Name of the hourly setpoint schedule. Setpoint should be defined (in F) for every hour. The operating mode schedule must also be located in the same location. This will be ignored if a constant setpoint is selected.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>hourly_setpoint_schedule.csv</default_value>
+    </argument>
+    <argument>
+      <name>operating_mode_schedule</name>
+      <display_name>Operating Mode Schedule File Name</display_name>
+      <description>Name of the hourly operating mode schedule. Valid values are 'standard' and 'hp_only' and values must be specified for every hour. The setpoint schedule must also be located in the same location.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>hourly_operating_mode_schedule.csv</default_value>
+    </argument>
+    <argument>
       <name>location</name>
       <display_name>Location</display_name>
       <description>The space type for the location. 'auto' will automatically choose a space type based on the space types found in the model.</description>
       <type>Choice</type>
       <required>true</required>
-      <model_dependent>true</model_dependent>
+      <model_dependent>false</model_dependent>
       <default_value>auto</default_value>
       <choices>
         <choice>
@@ -182,6 +266,60 @@
   </attributes>
   <files>
     <file>
+      <filename>hourly_setpoint_schedule.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>B3202901</checksum>
+    </file>
+    <file>
+      <filename>hourly_operating_mode_schedule.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9A569E1A</checksum>
+    </file>
+    <file>
+      <filename>hourly_operating_mode_schedule_feb.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>FB91B4B3</checksum>
+    </file>
+    <file>
+      <filename>hourly_schedule_high_above_140.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>3B35C026</checksum>
+    </file>
+    <file>
+      <filename>hourly_schedule_high_above_212.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>16B39C36</checksum>
+    </file>
+    <file>
+      <filename>hourly_schedule_low_below_0.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>7BC74F60</checksum>
+    </file>
+    <file>
+      <filename>hourly_schedule_low_below_110.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>446D9749</checksum>
+    </file>
+    <file>
+      <filename>hourly_setpoint_schedule_feb.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>DCD58087</checksum>
+    </file>
+    <file>
+      <filename>wrong_length_schedule.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>D56796AD</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.4.1</identifier>
@@ -190,13 +328,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>9BE7CF94</checksum>
+      <checksum>66D4CC51</checksum>
     </file>
     <file>
       <filename>ResidentialWaterHeaterHeatPump_Test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>7818D4FD</checksum>
+      <checksum>9A8B137A</checksum>
     </file>
   </files>
 </measure>

@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_hot_water_heater_tankless</name>
   <uid>caf92375-4c0c-47d1-9fe1-7aa5d3b1a734</uid>
-  <version_id>a41e6d49-2f42-479b-803d-eb10501aa5f1</version_id>
-  <version_modified>20210602T232058Z</version_modified>
+  <version_id>f20f0235-b183-4437-b35b-56b69b7e9068</version_id>
+  <version_modified>20210616T203305Z</version_modified>
   <xml_checksum>9882CBDB</xml_checksum>
   <class_name>ResidentialHotWaterHeaterTankless</class_name>
   <display_name>Set Residential Tankless Water Heater</display_name>
@@ -36,7 +36,7 @@
     <argument>
       <name>setpoint_temp</name>
       <display_name>Setpoint</display_name>
-      <description>Water heater setpoint temperature.</description>
+      <description>Water heater setpoint temperature. This value will be ignored if the setpoint type is Scheduled.</description>
       <type>Double</type>
       <units>F</units>
       <required>true</required>
@@ -49,7 +49,7 @@
       <description>The space type for the location. 'auto' will automatically choose a space type based on the space types found in the model.</description>
       <type>Choice</type>
       <required>true</required>
-      <model_dependent>true</model_dependent>
+      <model_dependent>false</model_dependent>
       <default_value>auto</default_value>
       <choices>
         <choice>
@@ -146,6 +146,48 @@
   </attributes>
   <files>
     <file>
+      <filename>hourly_setpoint_schedule.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>997C4FF8</checksum>
+    </file>
+    <file>
+      <filename>hourly_schedule_high_above_140.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>3B35C026</checksum>
+    </file>
+    <file>
+      <filename>hourly_schedule_high_above_212.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>16B39C36</checksum>
+    </file>
+    <file>
+      <filename>hourly_schedule_low_below_0.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>7BC74F60</checksum>
+    </file>
+    <file>
+      <filename>hourly_schedule_low_below_110.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>446D9749</checksum>
+    </file>
+    <file>
+      <filename>hourly_setpoint_schedule_feb.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>DCD58087</checksum>
+    </file>
+    <file>
+      <filename>wrong_length_schedule.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>D56796AD</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.4.1</identifier>
@@ -154,13 +196,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>41550BB7</checksum>
+      <checksum>B60E2D3D</checksum>
     </file>
     <file>
       <filename>ResidentialWaterHeaterTankless_Test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>DB3A40DB</checksum>
+      <checksum>5BE45419</checksum>
     </file>
   </files>
 </measure>

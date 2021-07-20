@@ -443,6 +443,7 @@ class ResidentialClothesDryerTest < MiniTest::Test
               break
             end
             next if cd_time.nil?
+
             model.getScheduleRulesets.each do |cw_sch|
               next unless cw_sch.name.to_s.include? Constants.ObjectNameClothesWasher
 

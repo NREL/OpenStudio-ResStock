@@ -160,6 +160,7 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
     sql.availableEnvPeriods.each do |env_pd|
       env_type = sql.environmentType(env_pd)
       next unless env_type.is_initialized
+
       if env_type.get == OpenStudio::EnvironmentType.new('WeatherRunPeriod')
         ann_env_pd = env_pd
       end

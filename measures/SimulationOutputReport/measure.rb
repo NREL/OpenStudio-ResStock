@@ -117,6 +117,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     sqlFile.availableEnvPeriods.each do |env_pd|
       env_type = sqlFile.environmentType(env_pd)
       next unless env_type.is_initialized
+
       if env_type.get == OpenStudio::EnvironmentType.new('WeatherRunPeriod')
         ann_env_pd = env_pd
       end
@@ -438,11 +439,13 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
       # Save option cost/lifetime to results.csv
       next unless option_cost != 0
+
       option_cost = option_cost.round(2)
       option_cost_name = 'option_%02d_cost_usd' % option_num
       register_value(runner, option_cost_name, option_cost)
       runner.registerInfo("Registering #{option_cost} for #{option_cost_name}.")
       next unless (not option_lifetimes[option_num].nil?) && (option_lifetimes[option_num] != 0)
+
       lifetime = option_lifetimes[option_num].round(2)
       option_lifetime_name = 'option_%02d_lifetime_yrs' % option_num
       register_value(runner, option_lifetime_name, lifetime)
@@ -623,6 +626,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
             components << component
 
             next unless component.to_CoilHeatingElectric.is_initialized
+
             coil = component.to_CoilHeatingElectric.get
             if coil.nominalCapacity.is_initialized
               cost_mult += UnitConversions.convert(coil.nominalCapacity.get, 'W', 'kBtu/hr')
@@ -675,6 +679,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
             next unless not component.nil?
             next unless component.to_CoilCoolingDXSingleSpeed.is_initialized
+
             coil = component.to_CoilCoolingDXSingleSpeed.get
             if coil.ratedTotalCoolingCapacity.is_initialized
               cost_mult += UnitConversions.convert(coil.ratedTotalCoolingCapacity.get, 'W', 'kBtu/hr')
@@ -687,6 +692,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
             next if Constants.ObjectNameWaterHeater(unit.name.to_s) != wh.name.to_s
 
             next unless wh.tankVolume.is_initialized
+
             volume = UnitConversions.convert(wh.tankVolume.get, 'm^3', 'gal')
             next unless volume >= 1.0 # skip tankless
             next if components.include? wh
@@ -707,6 +713,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               wh = wh.tank.to_WaterHeaterStratified.get
             end
             next unless wh.tankVolume.is_initialized
+
             volume = UnitConversions.convert(wh.tankVolume.get, 'm^3', 'gal')
             next unless volume >= 1.0 # skip tankless
             next if components.include? wh

@@ -444,6 +444,7 @@ class OutputMeters
       electricityWaterSystems = add_unit(sql_file, electricityWaterSystems, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYWATERSYSTEMS') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
 
       next unless @include_enduse_subcategories
+
       electricityRefrigerator = add_unit(sql_file, electricityRefrigerator, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYREFRIGERATOR') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       electricityClothesWasher = add_unit(sql_file, electricityClothesWasher, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYCLOTHESWASHER') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       electricityClothesDryer = add_unit(sql_file, electricityClothesDryer, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYCLOTHESDRYER') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
@@ -560,6 +561,7 @@ class OutputMeters
       naturalGasWaterSystems = add_unit(sql_file, naturalGasWaterSystems, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASWATERSYSTEMS') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
 
       next unless @include_enduse_subcategories
+
       naturalGasClothesDryer = add_unit(sql_file, naturalGasClothesDryer, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASCLOTHESDRYER') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       naturalGasCookingRange = add_unit(sql_file, naturalGasCookingRange, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASCOOKINGRANGE') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       naturalGasPoolHeater = add_unit(sql_file, naturalGasPoolHeater, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASPOOLHEATER') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
@@ -868,6 +870,7 @@ class OutputMeters
       wood_heating(custom_meter_infos, unit, thermal_zones)
 
       next unless @include_enduse_subcategories
+
       electricity_refrigerator(custom_meter_infos, unit, thermal_zones)
       electricity_clothes_washer(custom_meter_infos, unit, thermal_zones)
       electricity_clothes_dryer(custom_meter_infos, unit, thermal_zones)
@@ -1021,6 +1024,7 @@ class OutputMeters
         clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
 
         next unless htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+
         unless supp_htg_coil.nil?
           custom_meter_infos["#{unit.name}:ElectricityHeatingSupplemental"]['key_var_groups'] << ["#{supp_htg_coil.name}", 'Heating Coil Electric Energy']
         end
@@ -1146,6 +1150,7 @@ class OutputMeters
     end
     @model.getPlantLoops.each do |plant_loop|
       next unless plant_loop.name.to_s == Constants.PlantLoopDomesticWater(unit.name.to_s)
+
       water_heater = Waterheater.get_water_heater(@model, plant_loop, @runner)
       if water_heater.is_a? OpenStudio::Model::WaterHeaterHeatPumpWrappedCondenser
         custom_meter_infos["#{unit.name}:ElectricityFansHeating"]['key_var_groups'] << ["#{water_heater.fan.name}", 'Fan Electric Energy']
@@ -1203,9 +1208,10 @@ class OutputMeters
     custom_meter_infos["#{unit.name}:ElectricityWaterSystems"] = { 'fuel_type' => 'Electricity', 'key_var_groups' => [] }
     @model.getPlantLoops.each do |plant_loop|
       next unless plant_loop.name.to_s == Constants.PlantLoopDomesticWater(unit.name.to_s)
+
       water_heater = Waterheater.get_water_heater(@model, plant_loop, @runner)
 
-      if water_heater.is_a? OpenStudio::Model::WaterHeaterMixed
+      if water_heater.is_a?(OpenStudio::Model::WaterHeaterMixed) || water_heater.is_a?(OpenStudio::Model::WaterHeaterStratified)
         custom_meter_infos["#{unit.name}:ElectricityWaterSystems"]['key_var_groups'] << ["#{water_heater.name}", 'Water Heater Off Cycle Parasitic Electric Energy']
         custom_meter_infos["#{unit.name}:ElectricityWaterSystems"]['key_var_groups'] << ["#{water_heater.name}", 'Water Heater On Cycle Parasitic Electric Energy']
         next if water_heater.heaterFuelType != 'Electricity'
@@ -1353,8 +1359,9 @@ class OutputMeters
     custom_meter_infos["#{unit.name}:NaturalGasWaterSystems"] = { 'fuel_type' => 'NaturalGas', 'key_var_groups' => [] }
     @model.getPlantLoops.each do |plant_loop|
       next unless plant_loop.name.to_s == Constants.PlantLoopDomesticWater(unit.name.to_s)
+
       water_heater = Waterheater.get_water_heater(@model, plant_loop, @runner)
-      next unless water_heater.is_a? OpenStudio::Model::WaterHeaterMixed
+      next unless water_heater.is_a?(OpenStudio::Model::WaterHeaterMixed) || water_heater.is_a?(OpenStudio::Model::WaterHeaterStratified)
       next if water_heater.heaterFuelType != 'NaturalGas'
 
       custom_meter_infos["#{unit.name}:NaturalGasWaterSystems"]['key_var_groups'] << ["#{water_heater.name}", 'Water Heater Gas Energy']
@@ -1454,8 +1461,9 @@ class OutputMeters
     custom_meter_infos["#{unit.name}:FuelOilWaterSystems"] = { 'fuel_type' => 'FuelOil#1', 'key_var_groups' => [] }
     @model.getPlantLoops.each do |plant_loop|
       next unless plant_loop.name.to_s == Constants.PlantLoopDomesticWater(unit.name.to_s)
+
       water_heater = Waterheater.get_water_heater(@model, plant_loop, @runner)
-      next unless water_heater.is_a? OpenStudio::Model::WaterHeaterMixed
+      next unless water_heater.is_a?(OpenStudio::Model::WaterHeaterMixed) || water_heater.is_a?(OpenStudio::Model::WaterHeaterStratified)
       next if water_heater.heaterFuelType != 'FuelOil#1'
 
       custom_meter_infos["#{unit.name}:FuelOilWaterSystems"]['key_var_groups'] << ["#{water_heater.name}", 'Water Heater FuelOil#1 Energy']
@@ -1575,8 +1583,9 @@ class OutputMeters
     custom_meter_infos["#{unit.name}:PropaneWaterSystems"] = { 'fuel_type' => 'PropaneGas', 'key_var_groups' => [] }
     @model.getPlantLoops.each do |plant_loop|
       next unless plant_loop.name.to_s == Constants.PlantLoopDomesticWater(unit.name.to_s)
+
       water_heater = Waterheater.get_water_heater(@model, plant_loop, @runner)
-      next unless water_heater.is_a? OpenStudio::Model::WaterHeaterMixed
+      next unless water_heater.is_a?(OpenStudio::Model::WaterHeaterMixed) || water_heater.is_a?(OpenStudio::Model::WaterHeaterStratified)
       next if water_heater.heaterFuelType != 'PropaneGas'
 
       custom_meter_infos["#{unit.name}:PropaneWaterSystems"]['key_var_groups'] << ["#{water_heater.name}", 'Water Heater Propane Energy']
@@ -1591,6 +1600,7 @@ class OutputMeters
         clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
 
         next unless htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+
         if htg_coil.is_a? OpenStudio::Model::CoilHeatingGas
           next if htg_coil.fuelType != 'OtherFuel1'
         end

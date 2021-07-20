@@ -119,6 +119,7 @@ class ResidentialSimulationControls < OpenStudio::Measure::ModelMeasure
       leap_day += 1 if month == 2 # february
       day_of_month_valid = (1..Constants.NumDaysInMonths[month - 1] + leap_day).to_a.include? day # accommodate leap day
       next if day_of_month_valid
+
       if i == 0
         runner.registerError("Invalid begin day of month (#{begin_day_of_month}) entered.")
       elsif i == 1

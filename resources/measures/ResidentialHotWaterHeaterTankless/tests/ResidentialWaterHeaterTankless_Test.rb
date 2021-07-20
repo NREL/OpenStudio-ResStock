@@ -75,8 +75,8 @@ class ResidentialHotWaterHeaterTanklessTest < MiniTest::Test
     args_hash['energy_factor'] = 0.96
     args_hash['setpoint_temp'] = 130
     args_hash['fuel_type'] = Constants.FuelTypeGas
-    expected_num_del_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 1 }
-    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 1 }
+    expected_num_del_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 2 }
+    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 2 }
     expected_values = { 'InputCapacity' => 29307107, 'ThermalEfficiency' => 0.883, 'Setpoint' => 130, 'OnCycle' => 7.38, 'OffCycle' => 7.38, 'FuelType' => Constants.FuelTypeGas }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
@@ -84,27 +84,45 @@ class ResidentialHotWaterHeaterTanklessTest < MiniTest::Test
   def test_retrofit_replace_tank_with_tankless_gas
     args_hash = {}
     args_hash['fuel_type'] = Constants.FuelTypeGas
-    expected_num_del_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 1 }
-    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 1 }
+    expected_num_del_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 2 }
+    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 2 }
     expected_values = { 'InputCapacity' => 29307107, 'ThermalEfficiency' => 0.754, 'Setpoint' => 125, 'OnCycle' => 7.38, 'OffCycle' => 7.38, 'FuelType' => Constants.FuelTypeGas }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+  end
+
+  def test_retrofit_replace_tank_scheduled_sp_with_tankless_gas
+    args_hash = {}
+    args_hash['fuel_type'] = Constants.FuelTypeGas
+    expected_num_del_objects = { 'WaterHeaterStratified' => 1, 'ScheduleFixedInterval' => 2 }
+    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 2 }
+    expected_values = { 'InputCapacity' => 29307107, 'ThermalEfficiency' => 0.754, 'Setpoint' => 125, 'OnCycle' => 7.38, 'OffCycle' => 7.38, 'FuelType' => Constants.FuelTypeGas }
+    _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_Stratified_WHTank_scheduled_SP.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
   def test_retrofit_replace_hpwh_with_tankless_gas
     args_hash = {}
     args_hash['fuel_type'] = Constants.FuelTypeGas
-    expected_num_del_objects = { 'WaterHeaterStratified' => 1, 'ScheduleConstant' => 5, 'CoilWaterHeatingAirToWaterHeatPumpWrapped' => 1, 'FanOnOff' => 1, 'WaterHeaterHeatPumpWrappedCondenser' => 1, 'OtherEquipment' => 2, 'OtherEquipmentDefinition' => 2, 'EnergyManagementSystemProgramCallingManager' => 1, 'EnergyManagementSystemProgram' => 2, 'EnergyManagementSystemActuator' => 7, 'EnergyManagementSystemSensor' => 9, 'EnergyManagementSystemTrendVariable' => 3 }
-    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 1 }
+    expected_num_del_objects = { 'WaterHeaterStratified' => 1, 'ScheduleConstant' => 6, 'CoilWaterHeatingAirToWaterHeatPumpWrapped' => 1, 'FanOnOff' => 1, 'WaterHeaterHeatPumpWrappedCondenser' => 1, 'OtherEquipment' => 2, 'OtherEquipmentDefinition' => 2, 'EnergyManagementSystemProgramCallingManager' => 1, 'EnergyManagementSystemProgram' => 2, 'EnergyManagementSystemActuator' => 7, 'EnergyManagementSystemSensor' => 10, 'EnergyManagementSystemTrendVariable' => 3 }
+    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 2 }
     expected_values = { 'InputCapacity' => 29307107, 'ThermalEfficiency' => 0.754, 'Setpoint' => 125, 'OnCycle' => 7.38, 'OffCycle' => 7.38, 'FuelType' => Constants.FuelTypeGas }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_HPWH.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+  end
+
+  def test_retrofit_replace_hpwh_scheduled_sp_with_tankless_gas
+    args_hash = {}
+    args_hash['fuel_type'] = Constants.FuelTypeGas
+    expected_num_del_objects = { 'WaterHeaterStratified' => 1, 'ScheduleFixedInterval' => 3, 'ScheduleConstant' => 4, 'WaterHeaterHeatPumpWrappedCondenser' => 1, 'CoilWaterHeatingAirToWaterHeatPumpWrapped' => 1, 'FanOnOff' => 1, 'OtherEquipment' => 2, 'OtherEquipmentDefinition' => 2, 'EnergyManagementSystemSensor' => 10, 'EnergyManagementSystemActuator' => 7, 'EnergyManagementSystemTrendVariable' => 3, 'EnergyManagementSystemProgram' => 2, 'EnergyManagementSystemProgramCallingManager' => 1 }
+    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 2 }
+    expected_values = { 'InputCapacity' => 29307107, 'ThermalEfficiency' => 0.754, 'Setpoint' => 125, 'OnCycle' => 7.38, 'OffCycle' => 7.38, 'FuelType' => Constants.FuelTypeGas }
+    _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_HPWH_scheduled_SP.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
   def test_retrofit_replace_tank_electric_shw_with_tankless_gas
     args_hash = {}
     args_hash['fuel_type'] = Constants.FuelTypeGas
     args_hash['setpoint_temp'] = '130'
-    expected_num_del_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 1 }
-    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 1 }
+    expected_num_del_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 2 }
+    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 2 }
     expected_values = { 'InputCapacity' => 29307107, 'ThermalEfficiency' => 0.754, 'Setpoint' => args_hash['setpoint_temp'].to_f, 'OnCycle' => 7.38, 'OffCycle' => 7.38, 'FuelType' => Constants.FuelTypeGas, 'StorageTankSetpoint1' => args_hash['setpoint_temp'].to_f, 'StorageTankSetpoint2' => args_hash['setpoint_temp'].to_f }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_SHW.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
@@ -113,14 +131,14 @@ class ResidentialHotWaterHeaterTanklessTest < MiniTest::Test
     args_hash = {}
     args_hash['setpoint_temp'] = -10
     result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Hot water temperature must be greater than 0 and less than 212.')
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Water heater temperature setpoint must not be less than 0F or greater than 212F.')
   end
 
   def test_argument_error_setpoint_lg_300
     args_hash = {}
     args_hash['setpoint_temp'] = 300
     result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Hot water temperature must be greater than 0 and less than 212.')
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Water heater temperature setpoint must not be less than 0F or greater than 212F.')
   end
 
   def test_argument_error_capacity_lt_0
@@ -327,6 +345,7 @@ class ResidentialHotWaterHeaterTanklessTest < MiniTest::Test
 
         new_object = new_object.public_send("to_#{obj_type}").get
         next unless (obj_type == 'WaterHeaterMixed') || (obj_type == 'WaterHeaterStratified')
+
         actual_values['TankVolume'] += UnitConversions.convert(new_object.tankVolume.get, 'm^3', 'gal')
         actual_values['InputCapacity'] += UnitConversions.convert(new_object.heaterMaximumCapacity.get, 'W', 'kW')
         actual_values['ThermalEfficiency'] += new_object.heaterThermalEfficiency.get
@@ -355,7 +374,9 @@ class ResidentialHotWaterHeaterTanklessTest < MiniTest::Test
     assert_in_epsilon(expected_values['ThermalEfficiency'], actual_values['ThermalEfficiency'], 0.01)
     assert_in_epsilon(0, actual_values['TankUA1'], 0.01)
     assert_in_epsilon(0, actual_values['TankUA2'], 0.01)
-    assert_in_epsilon(expected_values['Setpoint'], actual_values['Setpoint'], 0.01)
+    if not expected_values['Setpoint'].nil?
+      assert_in_epsilon(expected_values['Setpoint'], actual_values['Setpoint'], 0.01)
+    end
     assert_in_epsilon(expected_values['OnCycle'], actual_values['OnCycle'], 0.01)
     assert_in_epsilon(expected_values['OffCycle'], actual_values['OffCycle'], 0.01)
     assert_in_epsilon(num_new_whs.to_f, actual_values['SkinLossFrac'], 0.01)

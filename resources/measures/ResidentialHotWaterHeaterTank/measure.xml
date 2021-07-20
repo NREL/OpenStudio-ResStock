@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_hot_water_heater_tank</name>
   <uid>0f2214ac-12ca-4350-9942-8d1fb1277608</uid>
-  <version_id>3d033bf8-2bdc-48d5-a39e-bff417e6793e</version_id>
-  <version_modified>20210602T232058Z</version_modified>
+  <version_id>99d3f94d-b8cc-44ef-9918-2fd5111aecdb</version_id>
+  <version_modified>20210616T203305Z</version_modified>
   <xml_checksum>9882CBDB</xml_checksum>
   <class_name>ResidentialHotWaterHeaterTank</class_name>
   <display_name>Set Residential Tank Water Heater</display_name>
@@ -48,9 +48,28 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
+      <name>setpoint_type</name>
+      <display_name>Setpoint type</display_name>
+      <description>The water heater setpoint type. The 'constant' option will use a constant value for the whole year, while 'scheduled' will use 8760 values in a schedule file.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>constant</default_value>
+      <choices>
+        <choice>
+          <value>constant</value>
+          <display_name>constant</display_name>
+        </choice>
+        <choice>
+          <value>scheduled</value>
+          <display_name>scheduled</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>setpoint_temp</name>
       <display_name>Setpoint</display_name>
-      <description>Water heater setpoint temperature.</description>
+      <description>Water heater setpoint temperature. This value will be ignored if the setpoint type is Scheduled.</description>
       <type>Double</type>
       <units>F</units>
       <required>true</required>
@@ -58,12 +77,30 @@
       <default_value>125</default_value>
     </argument>
     <argument>
+      <name>schedules_directory</name>
+      <display_name>Setpoint and Operating Mode Schedule Directory</display_name>
+      <description>Absolute (or relative) directory to schedule files. This argument will be ignored if a constant setpoint type is used instead.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>./resources</default_value>
+    </argument>
+    <argument>
+      <name>setpoint_schedule</name>
+      <display_name>Setpoint Schedule File Name</display_name>
+      <description>Name of the hourly setpoint schedule. Setpoint should be defined (in F) for every hour. The operating mode schedule must also be located in the same location.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>hourly_setpoint_schedule.csv</default_value>
+    </argument>
+    <argument>
       <name>location</name>
       <display_name>Location</display_name>
       <description>The space type for the location. 'auto' will automatically choose a space type based on the space types found in the model.</description>
       <type>Choice</type>
       <required>true</required>
-      <model_dependent>true</model_dependent>
+      <model_dependent>false</model_dependent>
       <default_value>auto</default_value>
       <choices>
         <choice>
@@ -140,6 +177,25 @@
         </choice>
       </choices>
     </argument>
+    <argument>
+      <name>tank_model_type</name>
+      <display_name>Tank Type</display_name>
+      <description>Type of tank model to use. The 'stratified' tank generally provide more accurate results, but may significantly increase run time.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>mixed</default_value>
+      <choices>
+        <choice>
+          <value>mixed</value>
+          <display_name>mixed</display_name>
+        </choice>
+        <choice>
+          <value>stratified</value>
+          <display_name>stratified</display_name>
+        </choice>
+      </choices>
+    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -160,6 +216,54 @@
   </attributes>
   <files>
     <file>
+      <filename>hourly_setpoint_schedule.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>B3202901</checksum>
+    </file>
+    <file>
+      <filename>hourly_schedule_high_above_140.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>3B35C026</checksum>
+    </file>
+    <file>
+      <filename>hourly_schedule_high_above_212.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>16B39C36</checksum>
+    </file>
+    <file>
+      <filename>hourly_schedule_low_below_0.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>7BC74F60</checksum>
+    </file>
+    <file>
+      <filename>hourly_schedule_low_below_110.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>446D9749</checksum>
+    </file>
+    <file>
+      <filename>hourly_setpoint_schedule_feb.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>DCD58087</checksum>
+    </file>
+    <file>
+      <filename>hourly_setpoint_schedule_leapyear.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9642842F</checksum>
+    </file>
+    <file>
+      <filename>wrong_length_schedule.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>D56796AD</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.4.1</identifier>
@@ -168,13 +272,19 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>FD7E3BC2</checksum>
+      <checksum>3C996113</checksum>
     </file>
     <file>
       <filename>ResidentialWaterHeaterTank_Test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>6C0BE584</checksum>
+      <checksum>FB848533</checksum>
+    </file>
+    <file>
+      <filename>ResidentialWaterHeaterTank_Test.rb.bak</filename>
+      <filetype>bak</filetype>
+      <usage_type>test</usage_type>
+      <checksum>0A637D52</checksum>
     </file>
   </files>
 </measure>

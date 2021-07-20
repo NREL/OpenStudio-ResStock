@@ -365,6 +365,7 @@ class ResidentialRefrigeratorTest < MiniTest::Test
 
         new_object = new_object.public_send("to_#{obj_type}").get
         next unless obj_type == 'ElectricEquipment'
+
         full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model.getYearDescription, new_object.schedule.get)
         actual_values['Annual_kwh'] += UnitConversions.convert(full_load_hrs * new_object.designLevel.get * new_object.multiplier, 'Wh', 'kWh')
         actual_values['Location'] << new_object.space.get.spaceType.get.standardsSpaceType.get

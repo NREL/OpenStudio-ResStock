@@ -154,6 +154,7 @@ class TsvFile
     @option_cols.each_with_index do |(option_name, option_col), index|
       rowsum += rowvals[option_name]
       next unless (rowsum >= sample_value) || ((index == n_options - 1) && (rowsum + 0.00001 >= sample_value))
+
       matched_option_name = option_name
       matched_row_num = rownum
       break

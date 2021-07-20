@@ -42,6 +42,16 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
     storage_tank_volume.setDefaultValue(50)
     args << storage_tank_volume
 
+    # make an argument for setpoint type (constant or variable)
+    setpoint_type_args = OpenStudio::StringVector.new
+    setpoint_type_args << Constants.WaterHeaterSetpointTypeConstant
+    setpoint_type_args << Constants.WaterHeaterSetpointTypeScheduled
+    setpoint_type = OpenStudio::Measure::OSArgument::makeChoiceArgument('setpoint_type', setpoint_type_args, true)
+    setpoint_type.setDisplayName('Setpoint type')
+    setpoint_type.setDescription("The water heater setpoint type. The '#{Constants.WaterHeaterSetpointTypeConstant}' option will use a constant value for the whole year, while '#{Constants.WaterHeaterSetpointTypeScheduled}' will use 8760 values in a schedule file.")
+    setpoint_type.setDefaultValue(Constants.WaterHeaterSetpointTypeConstant)
+    args << setpoint_type
+
     # make an argument for hot water setpoint temperature
     dhw_setpoint = osargument::makeDoubleArgument('setpoint_temp', true)
     dhw_setpoint.setDisplayName('Setpoint')
@@ -50,13 +60,54 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
     dhw_setpoint.setDefaultValue(125)
     args << dhw_setpoint
 
+    # make an argument for operating mode type (constant or variable)
+    operating_mode_schedule_type_args = OpenStudio::StringVector.new
+    operating_mode_schedule_type_args << Constants.WaterHeaterOperatingModeTypeConstant
+    operating_mode_schedule_type_args << Constants.WaterHeaterOperatingModeTypeScheduled
+    operating_mode_schedule_type = OpenStudio::Measure::OSArgument::makeChoiceArgument('operating_mode_schedule_type', operating_mode_schedule_type_args, true)
+    operating_mode_schedule_type.setDisplayName('Operating mode type')
+    operating_mode_schedule_type.setDescription("The water heater operating mode type. The '#{Constants.WaterHeaterOperatingModeTypeConstant}' option will use a constant control strategy for the whole year, while '#{Constants.WaterHeaterOperatingModeTypeScheduled}' will use 8760 values in a schedule file.")
+    operating_mode_schedule_type.setDefaultValue(Constants.WaterHeaterOperatingModeTypeConstant)
+    args << operating_mode_schedule_type
+
+    # make an argument for operating mode (standard or hp_only)
+    operating_mode_args = OpenStudio::StringVector.new
+    operating_mode_args << Constants.WaterHeaterOperatingModeStandard
+    operating_mode_args << Constants.WaterHeaterOperatingModeHeatPumpOnly
+    operating_mode = OpenStudio::Measure::OSArgument::makeChoiceArgument('operating_mode', operating_mode_args, true)
+    operating_mode.setDisplayName('Operating Mode')
+    operating_mode.setDescription("The water heater operating mode. The '#{Constants.WaterHeaterOperatingModeHeatPumpOnly}' option only uses the heat pump, while '#{Constants.WaterHeaterOperatingModeStandard}' allows the backup electric resistance to come on in high demand situations. This is ignored if a scheduled operating mode type is selected.")
+    operating_mode.setDefaultValue(Constants.WaterHeaterOperatingModeStandard)
+    args << operating_mode
+
+    # make an argument for the directory that contains the hourly schedules
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_directory', true)
+    arg.setDisplayName('Setpoint and Operating Mode Schedule Directory')
+    arg.setDescription('Absolute (or relative) directory to schedule files. This argument will be ignored if a constant setpoint type is used instead.')
+    arg.setDefaultValue('./resources')
+    args << arg
+
+    # make an argument for the 8760 hourly setpoint schedule
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('setpoint_schedule', true)
+    arg.setDisplayName('Setpoint Schedule File Name')
+    arg.setDescription('Name of the hourly setpoint schedule. Setpoint should be defined (in F) for every hour. The operating mode schedule must also be located in the same location. This will be ignored if a constant setpoint is selected.')
+    arg.setDefaultValue('hourly_setpoint_schedule.csv')
+    args << arg
+
+    # make an argument for the 8760 hourly control mode schedule
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('operating_mode_schedule', true)
+    arg.setDisplayName('Operating Mode Schedule File Name')
+    arg.setDescription("Name of the hourly operating mode schedule. Valid values are 'standard' and 'hp_only' and values must be specified for every hour. The setpoint schedule must also be located in the same location.")
+    arg.setDefaultValue('hourly_operating_mode_schedule.csv')
+    args << arg
+
     # make a choice argument for location
     location_args = OpenStudio::StringVector.new
     location_args << Constants.Auto
     Geometry.get_model_locations(model).each do |loc|
       location_args << loc
     end
-    location = OpenStudio::Measure::OSArgument::makeChoiceArgument('location', location_args, true, true)
+    location = OpenStudio::Measure::OSArgument::makeChoiceArgument('location', location_args, true)
     location.setDisplayName('Location')
     location.setDescription("The space type for the location. '#{Constants.Auto}' will automatically choose a space type based on the space types found in the model.")
     location.setDefaultValue(Constants.Auto)
@@ -179,7 +230,13 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
     e_cap = runner.getDoubleArgumentValue('element_capacity', user_arguments)
     vol = runner.getDoubleArgumentValue('storage_tank_volume', user_arguments)
     location = runner.getStringArgumentValue('location', user_arguments)
+    setpoint_type = runner.getStringArgumentValue('setpoint_type', user_arguments)
     t_set = runner.getDoubleArgumentValue('setpoint_temp', user_arguments).to_f
+    operating_mode_schedule_type = runner.getStringArgumentValue('operating_mode_schedule_type', user_arguments)
+    operating_mode = runner.getStringArgumentValue('operating_mode', user_arguments)
+    schedule_directory = runner.getStringArgumentValue('schedules_directory', user_arguments)
+    setpoint_schedule = runner.getStringArgumentValue('setpoint_schedule', user_arguments)
+    operating_mode_schedule = runner.getStringArgumentValue('operating_mode_schedule', user_arguments)
     min_temp = runner.getDoubleArgumentValue('min_temp', user_arguments).to_f
     max_temp = runner.getDoubleArgumentValue('max_temp', user_arguments).to_f
     cap = runner.getDoubleArgumentValue('cap', user_arguments).to_f
@@ -193,6 +250,26 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
     temp_depress = runner.getDoubleArgumentValue('temp_depress', user_arguments).to_f
     # ducting = runner.getStringArgumentValue("ducting",user_arguments)
     ducting = 'none'
+
+    if (setpoint_type == Constants.WaterHeaterSetpointTypeScheduled) || (operating_mode_schedule_type == Constants.WaterHeaterOperatingModeTypeScheduled)
+      unless (Pathname.new schedule_directory).absolute?
+        schedule_directory = File.expand_path(File.join(File.dirname(__FILE__), schedule_directory))
+      end
+      if setpoint_type == Constants.WaterHeaterSetpointTypeScheduled
+        setpoint_schedule_file = File.join(schedule_directory, setpoint_schedule)
+        if not File.exist?(setpoint_schedule_file)
+          runner.registerError("'#{setpoint_schedule_file}' does not exist.")
+          return false
+        end
+      end
+      if operating_mode_schedule_type == Constants.WaterHeaterOperatingModeTypeScheduled
+        operating_mode_schedule_file = File.join(schedule_directory, operating_mode_schedule)
+        if not File.exist?(operating_mode_schedule_file)
+          runner.registerError("'#{operating_mode_schedule_file}' does not exist.")
+          return false
+        end
+      end
+    end
 
     # Validate inputs
     if not runner.validateUserArguments(arguments(model), user_arguments)
@@ -242,7 +319,9 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
       end
 
       success = Waterheater.apply_heatpump(model, unit, runner, loop, space, weather,
-                                           e_cap, vol, t_set, min_temp, max_temp,
+                                           e_cap, vol, setpoint_type, t_set, operating_mode,
+                                           operating_mode_schedule_type, setpoint_schedule_file,
+                                           operating_mode_schedule_file, min_temp, max_temp,
                                            cap, cop, shr, airflow_rate, fan_power,
                                            parasitics, tank_ua, int_factor, temp_depress,
                                            ducting, unit_index)

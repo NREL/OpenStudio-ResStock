@@ -437,6 +437,7 @@ class ResidentialLightingInteriorTest < MiniTest::Test
 
         new_object = new_object.public_send("to_#{obj_type}").get
         next unless obj_type == 'Lights'
+
         if schedules_file.nil?
           schedule_file = new_object.schedule.get.to_ScheduleFile.get
           schedules_file = SchedulesFile.new(runner: runner, model: model)

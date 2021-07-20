@@ -74,6 +74,7 @@ class HourlyByMonthSchedule
           return nil
         end
         next unless val.length != num_inner_values
+
         @runner.registerError(err_msg)
         @validated = false
         return nil
@@ -258,6 +259,7 @@ class MonthWeekdayWeekendSchedule
       end
       values.each do |val|
         next unless not valid_float?(val)
+
         @runner.registerError(err_msg)
         @validated = false
         return nil
@@ -268,6 +270,7 @@ class MonthWeekdayWeekendSchedule
         vals = values.split(',')
         vals.each do |val|
           next unless not valid_float?(val)
+
           @runner.registerError(err_msg)
           @validated = false
           return nil
@@ -440,7 +443,7 @@ end
 
 # Generic class for handling an hourly schedule (saved as a csv) with 8760 values. Currently used by water heater models.
 class HourlySchedule
-  def initialize(model, runner, sch_name, file, offset, convert_temp, validation_values)
+  def initialize(model, runner, sch_name, file, offset, convert_temp, validation_values, fill_value = nil)
     @validated = true
     @model = model
     @runner = runner
@@ -449,7 +452,7 @@ class HourlySchedule
     @offset = offset
     @convert_temp = convert_temp
     @validation_values = validation_values
-    @schedule, @schedule_array = createHourlyScheduleFromFile(runner, file, offset, convert_temp, validation_values)
+    @schedule, @schedule_array = createHourlyScheduleFromFile(runner, file, offset, convert_temp, validation_values, fill_value)
 
     if @schedule.nil?
       @validated = false
@@ -462,6 +465,10 @@ class HourlySchedule
     return @validated
   end
 
+  def name
+    return @sch_name
+  end
+
   def schedule
     return @schedule
   end
@@ -470,9 +477,17 @@ class HourlySchedule
     return @schedule_array
   end
 
+  def offset
+    return @offset
+  end
+
+  def validation_values
+    return @validation_values
+  end
+
   private
 
-  def createHourlyScheduleFromFile(runner, file, offset, convert_temp, validation_values)
+  def createHourlyScheduleFromFile(runner, file, offset, convert_temp, validation_values, fill_value = nil)
     data = []
 
     # Get appropriate file
@@ -499,17 +514,30 @@ class HourlySchedule
           value = validation_values.find_index(linedata[0]).to_f / (validation_values.length.to_f - 1.0)
           data[hour] = value
         else
-          runner.registerError("Invalid value included in the hourly schedule file. The invalid data occurs at hour #{hour}")
+          runner.registerError("Invalid value included in the hourly schedule file #{file}. The invalid data occurs at hour #{hour}")
         end
       end
       hour += 1
     end
 
     year_description = @model.getYearDescription
-    start_date = year_description.makeDate(1, 1)
     interval = OpenStudio::Time.new(0, 1, 0, 0)
+    start_date = year_description.makeDate(1, 1)
 
-    time_series = OpenStudio::TimeSeries.new(start_date, interval, OpenStudio::createVector(data), '')
+    if (data.length != 24 * Constants.NumDaysInYear(year_description.isLeapYear)) && (not fill_value.nil?)
+      # Fill hourly values for full year - allows for schedules shorter than a full year that are the same length as the simulation period
+      assumed_year = year_description.assumedYear
+      run_period = @model.getRunPeriod
+      run_period_start = Time.new(assumed_year, run_period.getBeginMonth, run_period.getBeginDayOfMonth)
+      start_hr = (run_period_start.yday - 1) * 24
+      end_hr = start_hr + data.length
+
+      data_yr = [UnitConversions.convert(fill_value, 'F', 'C')] * Constants.NumDaysInYear(year_description.isLeapYear) * 24
+      data_yr[start_hr...end_hr] = data
+      time_series = OpenStudio::TimeSeries.new(start_date, interval, OpenStudio::createVector(data_yr), '')
+    else
+      time_series = OpenStudio::TimeSeries.new(start_date, interval, OpenStudio::createVector(data), '')
+    end
 
     schedule = OpenStudio::Model::ScheduleFixedInterval.fromTimeSeries(time_series, @model).get
     schedule.setName(@sch_name)

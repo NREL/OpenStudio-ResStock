@@ -73,6 +73,7 @@ def retrieve_dp_data(local_results_dir, server_api, interval = 5, analysis_id = 
 
     # Report out progress
     next unless count.to_f * 100 / dps.length >= report_at
+
     puts "INFO: Completed #{report_at}%; #{(Time.now - timestep).round}s"
     report_at += interval
     timestep = Time.now

@@ -253,6 +253,7 @@ class ProcessConstructionsFinishedRoofTest < MiniTest::Test
           actual_values['AssemblyR'] += material.thickness / material.conductivity
         end
         next unless not new_object.name.to_s.include? 'Reversed'
+
         material = new_object.to_LayeredConstruction.get.layers[0].to_StandardOpaqueMaterial.get
         assert_equal(expected_values['ThermalAbsorptance'], material.thermalAbsorptance)
         assert_equal(expected_values['SolarAbsorptance'], material.solarAbsorptance)

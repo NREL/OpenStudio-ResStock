@@ -633,6 +633,7 @@ class WindowSkylightAreaTest < MiniTest::Test
     constructions = []
     model.getSubSurfaces.each do |sub_surface|
       next unless sub_surface.construction.is_initialized
+
       if not constructions.include? sub_surface.construction.get
         constructions << sub_surface.construction.get
         actual_values['Constructions'] += 1
@@ -655,6 +656,7 @@ class WindowSkylightAreaTest < MiniTest::Test
 
         new_object = new_object.public_send("to_#{obj_type}").get
         next unless obj_type == 'ShadingSurface'
+
         l, w, h = Geometry.get_surface_dimensions(new_object)
         if l < w
           assert_in_epsilon(expected_values['OverhangDepth'], UnitConversions.convert(l, 'm', 'ft'), 0.01)

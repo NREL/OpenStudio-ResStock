@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 class UnitConversions
   # As there is a performance penalty to using OpenStudio's built-in unit convert()
   # method, we use, our own methods here.
 
   def self.convert(x, from, to, fuel_type = nil, is_leap_year = false, steps_per_hour = 6)
-    from.downcase!
-    to.downcase!
+    from = from.downcase
+    to = to.downcase
 
     return x if from == to
 

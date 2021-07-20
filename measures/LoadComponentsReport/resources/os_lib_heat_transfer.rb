@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # *******************************************************************************
 # OpenStudio(R), Copyright (c) 2008-2018, Alliance for Sustainable Energy, LLC.
 # All rights reserved.
@@ -232,6 +234,7 @@ module OsLib_HeatTransfer
     sql.availableEnvPeriods.each do |env_pd|
       env_type = sql.environmentType(env_pd)
       next unless env_type.is_initialized
+
       if env_type.get == OpenStudio::EnvironmentType.new('WeatherRunPeriod')
         ann_env_pd = env_pd
       end

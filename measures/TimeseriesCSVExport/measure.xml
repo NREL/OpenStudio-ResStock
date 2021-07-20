@@ -1,9 +1,11 @@
+<?xml version="1.0"?>
 <measure>
   <schema_version>3.0</schema_version>
+  <error>wrong number of arguments (given 1, expected 0)</error>
   <name>timeseries_csv_export</name>
   <uid>2a3442c1-944d-4e91-9e11-11e0cf368c64</uid>
-  <version_id>fd2fed54-4cbd-43f6-b219-2dacac15fa0c</version_id>
-  <version_modified>20210719T195053Z</version_modified>
+  <version_id>3b9e3192-ce25-4f97-b208-b00d7c6d23c2</version_id>
+  <version_modified>20210616T193012Z</version_modified>
   <xml_checksum>15BF4E57</xml_checksum>
   <class_name>TimeseriesCSVExport</class_name>
   <display_name>Timeseries CSV Export</display_name>
@@ -15,6 +17,7 @@
       <display_name>Reporting Frequency</display_name>
       <description>The frequency at which to report timeseries output data.</description>
       <type>Choice</type>
+      <units></units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>Hourly</default_value>
@@ -40,12 +43,15 @@
           <display_name>RunPeriod</display_name>
         </choice>
       </choices>
+      <min_value></min_value>
+      <max_value></max_value>
     </argument>
     <argument>
       <name>include_enduse_subcategories</name>
       <display_name>Report Disaggregated Interior Equipment</display_name>
       <description>Whether to report interior equipment broken out into components: appliances, plug loads, exhaust fans, large uncommon loads, etc.</description>
       <type>Boolean</type>
+      <units></units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>true</default_value>
@@ -59,18 +65,24 @@
           <display_name>false</display_name>
         </choice>
       </choices>
+      <min_value></min_value>
+      <max_value></max_value>
     </argument>
     <argument>
       <name>output_variables</name>
       <display_name>Output Variables</display_name>
       <description>Specify a comma-separated list of output variables to report; use the notation: `Output Variable|Key Value` to specify a key value. (See EnergyPlus's rdd file for available output variables.)</description>
       <type>String</type>
+      <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <default_value></default_value>
+      <min_value></min_value>
+      <max_value></max_value>
     </argument>
   </arguments>
-  <outputs/>
-  <provenances/>
+  <outputs />
+  <provenances />
   <tags>
     <tag>Reporting.QAQC</tag>
   </tags>
@@ -83,12 +95,6 @@
   </attributes>
   <files>
     <file>
-      <filename>timeseries_csv_export_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>EBDDB886</checksum>
-    </file>
-    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.0.5</identifier>
@@ -97,7 +103,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>322A5D51</checksum>
+      <checksum>73F6291A</checksum>
+    </file>
+    <file>
+      <filename>timeseries_csv_export_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>001A828C</checksum>
     </file>
   </files>
 </measure>

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
 unless File.exist? resources_path
   resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
@@ -658,7 +660,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
           return false if not success
 
           if ann_e > 0
-            msgs << "An extra refrigerator with #{ann_e.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'."
+            msgs << "An extra refrigerator with #{ann_e.round} kWhs annual energy consumption has been assigned to space '#{space.name}'."
             tot_ann_e += ann_e
           end
 
@@ -681,7 +683,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
           return false if not success
 
           if ann_e > 0
-            msgs << "A freezer with #{ann_e.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'."
+            msgs << "A freezer with #{ann_e.round} kWhs annual energy consumption has been assigned to space '#{space.name}'."
             tot_ann_e += ann_e
           end
 
@@ -836,7 +838,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
           return false if not success
 
           if ann_g > 0
-            msgs << "A gas fireplace with #{ann_g.round} therms annual energy consumption has been assigned to space '#{space.name.to_s}'."
+            msgs << "A gas fireplace with #{ann_g.round} therms annual energy consumption has been assigned to space '#{space.name}'."
             tot_ann_g += ann_g
           end
 

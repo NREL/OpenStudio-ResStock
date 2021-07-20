@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://openstudio.nrel.gov/openstudio-measure-writing-guide
 
@@ -277,7 +279,7 @@ class ResidentialLightingInterior < OpenStudio::Measure::ModelMeasure
       success, sch = Lighting.apply_interior(model, unit, runner, weather, sch, interior_ann, schedules_file)
       return false if not success
 
-      msgs << "Lighting with #{interior_ann.round} kWhs annual energy consumption has been assigned to unit '#{unit.name.to_s}'."
+      msgs << "Lighting with #{interior_ann.round} kWhs annual energy consumption has been assigned to unit '#{unit.name}'."
       tot_ltg_e += interior_ann
     end
 

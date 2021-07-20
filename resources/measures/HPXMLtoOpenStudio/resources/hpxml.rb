@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'xmlhelper'
 
 class HPXML
@@ -69,7 +71,7 @@ class HPXML
       end
     end
     HPXML.add_extension(parent: site,
-                        extensions: { "ShelterCoefficient": to_float(shelter_coefficient) })
+                        extensions: { 'ShelterCoefficient' => to_float(shelter_coefficient) })
 
     check_remainder(remainder,
                     calling_method: __method__.to_s,
@@ -215,7 +217,7 @@ class HPXML
     XMLHelper.add_element(air_infiltration_measurement, 'EffectiveLeakageArea', to_float(effective_leakage_area)) unless effective_leakage_area.nil?
     XMLHelper.add_element(air_infiltration_measurement, 'InfiltrationVolume', to_float(infiltration_volume)) unless infiltration_volume.nil?
     HPXML.add_extension(parent: air_infiltration_measurement,
-                        extensions: { "ConstantACHnatural": to_float(constant_ach_natural) })
+                        extensions: { 'ConstantACHnatural' => to_float(constant_ach_natural) })
 
     check_remainder(remainder,
                     calling_method: __method__.to_s,
@@ -605,8 +607,8 @@ class HPXML
                          id: under_slab_insulation_id,
                          continuous_nominal_r_value: to_float(under_slab_insulation_r_value))
     HPXML.add_extension(parent: slab,
-                        extensions: { "CarpetFraction": to_float(carpet_fraction),
-                                      "CarpetRValue": to_float(carpet_r_value) })
+                        extensions: { 'CarpetFraction' => to_float(carpet_fraction),
+                                      'CarpetRValue' => to_float(carpet_r_value) })
 
     check_remainder(remainder,
                     calling_method: __method__.to_s,
@@ -766,8 +768,8 @@ class HPXML
       XMLHelper.add_attribute(attached_to_wall, 'idref', wall_idref)
     end
     HPXML.add_extension(parent: window,
-                        extensions: { "InteriorShadingFactorSummer": to_float(interior_shading_factor_summer),
-                                      "InteriorShadingFactorWinter": to_float(interior_shading_factor_winter) })
+                        extensions: { 'InteriorShadingFactorSummer' => to_float(interior_shading_factor_summer),
+                                      'InteriorShadingFactorWinter' => to_float(interior_shading_factor_winter) })
     check_remainder(remainder,
                     calling_method: __method__.to_s,
                     expected_kwargs: [:orientation, :frame_type, :glass_layers, :glass_type, :gas_fill])
@@ -1260,7 +1262,7 @@ class HPXML
     XMLHelper.add_element(water_heating_system, 'UniformEnergyFactor', to_float(uniform_energy_factor)) unless uniform_energy_factor.nil?
     XMLHelper.add_element(water_heating_system, 'RecoveryEfficiency', to_float(recovery_efficiency)) unless recovery_efficiency.nil?
     HPXML.add_extension(parent: water_heating_system,
-                        extensions: { "EnergyFactorMultiplier": to_float(energy_factor_multiplier) })
+                        extensions: { 'EnergyFactorMultiplier' => to_float(energy_factor_multiplier) })
 
     check_remainder(remainder,
                     calling_method: __method__.to_s,
@@ -1737,8 +1739,8 @@ class HPXML
       XMLHelper.add_element(load, 'Value', to_float(kWh_per_year))
     end
     HPXML.add_extension(parent: plug_load,
-                        extensions: { "FracSensible": to_float(frac_sensible),
-                                      "FracLatent": to_float(frac_latent) })
+                        extensions: { 'FracSensible' => to_float(frac_sensible),
+                                      'FracLatent' => to_float(frac_latent) })
 
     check_remainder(remainder,
                     calling_method: __method__.to_s,
@@ -1764,9 +1766,9 @@ class HPXML
                                    **remainder)
     misc_loads = XMLHelper.create_elements_as_needed(hpxml, ['Building', 'BuildingDetails', 'MiscLoads'])
     HPXML.add_extension(parent: misc_loads,
-                        extensions: { "WeekdayScheduleFractions": weekday_fractions,
-                                      "WeekendScheduleFractions": weekend_fractions,
-                                      "MonthlyScheduleMultipliers": monthly_multipliers })
+                        extensions: { 'WeekdayScheduleFractions' => weekday_fractions,
+                                      'WeekendScheduleFractions' => weekend_fractions,
+                                      'MonthlyScheduleMultipliers' => monthly_multipliers })
 
     check_remainder(remainder,
                     calling_method: __method__.to_s,

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'constants'
 require_relative 'unit_conversions'
 require_relative 'util'
@@ -384,6 +386,7 @@ class Geometry
         return false
       end
     end
+    return true
   end
 
   # Returns true if all spaces in zone are fully above grade
@@ -477,7 +480,7 @@ class Geometry
       surface.vertices.each do |vertex|
         z_vertex << vertex.z
       end
-      if z_vertex.min < -1e-9
+      if z_vertex.min < -0.0001
         return true
       end
       if surface.outsideBoundaryCondition.downcase == 'foundation'
@@ -964,10 +967,15 @@ class Geometry
         end
       end
     end
+    return true
   end
 
   def self.is_foundation(space_or_zone)
-    return true if is_pier_beam(space_or_zone) || is_crawl(space_or_zone) || is_finished_basement(space_or_zone) || is_unfinished_basement(space_or_zone)
+    if is_pier_beam(space_or_zone) || is_crawl(space_or_zone) || is_finished_basement(space_or_zone) || is_unfinished_basement(space_or_zone)
+      return true
+    end
+
+    return false
   end
 
   def self.get_crawl_spaces(spaces)
@@ -1452,14 +1460,14 @@ class Geometry
       unit.additionalProperties.setFeature(Constants.BuildingUnitFeatureNumBathrooms, num_ba[unit_index])
 
       if units.size > 1
-        runner.registerInfo("Unit '#{unit_index}' has been assigned #{num_br[unit_index].to_s} bedroom(s) and #{num_ba[unit_index].round(2).to_s} bathroom(s).")
+        runner.registerInfo("Unit '#{unit_index}' has been assigned #{num_br[unit_index]} bedroom(s) and #{num_ba[unit_index].round(2)} bathroom(s).")
       end
 
       total_num_br += num_br[unit_index]
       total_num_ba += num_ba[unit_index]
     end
 
-    runner.registerInfo("The building has been assigned #{total_num_br.to_s} bedroom(s) and #{total_num_ba.round(2).to_s} bathroom(s) across #{units.size} unit(s).")
+    runner.registerInfo("The building has been assigned #{total_num_br} bedroom(s) and #{total_num_ba.round(2)} bathroom(s) across #{units.size} unit(s).")
     return true
   end
 
@@ -1566,7 +1574,7 @@ class Geometry
         spaces = bedroom_ffa_spaces
       end
       spaces.each do |space|
-        space_obj_name = "#{Constants.ObjectNameOccupants(unit.name.to_s)}|#{space.name.to_s}"
+        space_obj_name = "#{Constants.ObjectNameOccupants(unit.name.to_s)}|#{space.name}"
 
         # Remove any existing people
         objects_to_remove = []
@@ -1581,7 +1589,7 @@ class Geometry
           end
         end
         if objects_to_remove.size > 0
-          runner.registerInfo("Removed existing people from space '#{space.name.to_s}'.")
+          runner.registerInfo("Removed existing people from space '#{space.name}'.")
         end
         objects_to_remove.uniq.each do |object|
           begin
@@ -1601,7 +1609,9 @@ class Geometry
 
         if activity_sch.nil?
           # Create schedule
-          activity_sch = OpenStudio::Model::ScheduleRuleset.new(model, activity_per_person)
+          activity_sch = OpenStudio::Model::ScheduleConstant.new(model)
+          activity_sch.setValue(activity_per_person)
+          activity_sch.setName(Constants.ObjectNameOccupants + ' activity schedule')
         end
 
         # Add people definition for the occ
@@ -1622,7 +1632,7 @@ class Geometry
 
         total_num_occ += space_num_occ
 
-        runner.registerInfo("#{unit.name.to_s} has been assigned #{space_num_occ.round(2)} occupant(s) for space '#{space.name}'.")
+        runner.registerInfo("#{unit.name} has been assigned #{space_num_occ.round(2)} occupant(s) for space '#{space.name}'.")
       end
     end
 

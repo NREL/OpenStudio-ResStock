@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'fileutils'
 
 require 'rake'
@@ -654,13 +656,6 @@ def update_measures
                           exclude_measures,
                           "example_multifamily_#{weather_year}.osw",
                           weather_file)
-
-    # FloorspaceJS
-    # include_measures = ["ResidentialGeometryCreateFromFloorspaceJS"]
-    # generate_example_osws(data_hash,
-    #                      include_measures,
-    #                      exclude_measures,
-    #                      "example_from_floorspacejs.osw")
   end
 end
 

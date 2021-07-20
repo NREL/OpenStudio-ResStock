@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../../../test/minitest_helper'
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
@@ -82,7 +84,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash = {}
     args_hash['reporting_frequency'] = 'Daily'
     args_hash['include_enduse_subcategories'] = 'true'
-    args_hash['output_variables'] = 'Electric Equipment Electric Power, Zone Air Heat Balance Internal Convective Heat Gain Rate'
+    args_hash['output_variables'] = 'Electric Equipment Electricity Rate, Zone Air Heat Balance Internal Convective Heat Gain Rate'
     expected_values = { 'EnduseTimeseriesLength' => 365, 'EnduseTimeseriesWidth' => @@include_enduse_subcategories[args_hash['include_enduse_subcategories']] + 9 }
     _test_measure('SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm', args_hash, expected_values, __method__, 'USA_CO_Denver.Intl.AP.725650_TMY3.epw', '8760.csv', num_output_requests)
   end
@@ -116,7 +118,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash = {}
     args_hash['reporting_frequency'] = 'Daily'
     args_hash['include_enduse_subcategories'] = 'true'
-    args_hash['output_variables'] = 'Cooling Coil Runtime Fraction, Unitary System Ancillary Electric Power, System Node Temperature'
+    args_hash['output_variables'] = 'Cooling Coil Runtime Fraction, Unitary System Ancillary Electricity Rate, System Node Temperature'
     expected_values = { 'EnduseTimeseriesLength' => 365, 'EnduseTimeseriesWidth' => @@include_enduse_subcategories[args_hash['include_enduse_subcategories']] + 1 }
     _test_measure('MF_Successful_EnergyPlus_Run_TMY_Appl_PV.osm', args_hash, expected_values, __method__, 'USA_CO_Denver.Intl.AP.725650_TMY3.epw', '8760.csv', num_output_requests)
   end
@@ -196,7 +198,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     FileUtils.cp(sch_path, "#{test_dir(test_name)}")
 
     cli_path = OpenStudio.getOpenStudioCLI
-    cmd = "\"#{cli_path}\" --no-ssl run -w \"#{osw_path}\""
+    cmd = "\"#{cli_path}\" run -w \"#{osw_path}\""
     puts cmd
     system(cmd)
 

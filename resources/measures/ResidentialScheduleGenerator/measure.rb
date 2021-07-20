@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'csv'
 require 'matrix'
 resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))

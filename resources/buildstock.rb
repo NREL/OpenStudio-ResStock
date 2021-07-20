@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'csv'
 require "#{File.dirname(__FILE__)}/meta_measure"
 
@@ -18,7 +20,7 @@ class TsvFile
 
     full_header = nil
     rows = []
-    CSV.foreach(@full_path, { col_sep: "\t" }) do |row|
+    CSV.foreach(@full_path, col_sep: "\t") do |row|
       next if row[0].start_with? "\#"
 
       row.delete_if { |x| x.nil? || (x.size == 0) } # purge trailing empty fields
@@ -33,7 +35,7 @@ class TsvFile
     end
 
     if full_header.nil?
-      register_error("Could not find header row in #{@filename.to_s}.", @runner)
+      register_error("Could not find header row in #{@filename}.", @runner)
     end
 
     # Strip out everything but options and dependencies from header
@@ -54,7 +56,7 @@ class TsvFile
       end
     end
     if option_cols.size == 0
-      register_error("No options found in #{@filename.to_s}.", @runner)
+      register_error("No options found in #{@filename}.", @runner)
     end
 
     # Get all dependencies and their listed options
@@ -87,9 +89,9 @@ class TsvFile
 
       if not rows_keys_s[key_s_downcase].nil?
         if key_s.size > 0
-          register_error("Multiple rows found in #{@filename.to_s} with dependencies: #{key_s.to_s}.", @runner)
+          register_error("Multiple rows found in #{@filename} with dependencies: #{key_s}.", @runner)
         else
-          register_error("Multiple rows found in #{@filename.to_s}.", @runner)
+          register_error("Multiple rows found in #{@filename}.", @runner)
         end
       end
 
@@ -114,9 +116,9 @@ class TsvFile
     rownum = @rows_keys_s[key_s_downcase]
     if rownum.nil?
       if key_s.size > 0
-        register_error("Could not determine appropriate option in #{@filename.to_s} for sample value #{sample_value.to_s} with dependencies: #{key_s.to_s}.", @runner)
+        register_error("Could not determine appropriate option in #{@filename} for sample value #{sample_value} with dependencies: #{key_s}.", @runner)
       else
-        register_error("Could not determine appropriate option in #{@filename.to_s} for sample value #{sample_value.to_s}.", @runner)
+        register_error("Could not determine appropriate option in #{@filename} for sample value #{sample_value}.", @runner)
       end
     end
 
@@ -125,20 +127,20 @@ class TsvFile
     row = @rows[rownum]
     @option_cols.each do |option_name, option_col|
       if not row[option_col].is_number?
-        register_error("Field '#{row[option_col].to_s}' in #{@filename.to_s} must be numeric.", @runner)
+        register_error("Field '#{row[option_col]}' in #{@filename} must be numeric.", @runner)
       end
       rowvals[option_name] = row[option_col].to_f
 
       # Check positivity of the probability values
       if rowvals[option_name] < 0
-        register_error("Probability value in #{@filename.to_s} is less than zero.", @runner)
+        register_error("Probability value in #{@filename} is less than zero.", @runner)
       end
     end
 
     # Sum of values within 2% of 100%?
-    sum_rowvals = rowvals.values.reduce(:+)
+    sum_rowvals = rowvals.values.sum()
     if (sum_rowvals < 0.98) || (sum_rowvals > 1.02)
-      register_error("Values in #{@filename.to_s} incorrectly sum to #{sum_rowvals.to_s}.", @runner)
+      register_error("Values in #{@filename} incorrectly sum to #{sum_rowvals}.", @runner)
     end
 
     # If values don't exactly sum to 1, normalize them
@@ -322,14 +324,14 @@ def get_measure_args_from_option_names(lookup_csv_data, option_names, parameter_
   end
   option_names.each do |option_name|
     if not found_options[option_name]
-      register_error("Could not find parameter '#{parameter_name.to_s}' and option '#{option_name.to_s}' in #{lookup_file.to_s}.", runner)
+      register_error("Could not find parameter '#{parameter_name}' and option '#{option_name}' in #{lookup_file}.", runner)
     end
   end
   return options_measure_args
 end
 
 def print_option_assignment(parameter_name, option_name, runner)
-  runner.registerInfo("Assigning option '#{option_name.to_s}' for parameter '#{parameter_name.to_s}'.")
+  runner.registerInfo("Assigning option '#{option_name}' for parameter '#{parameter_name}'.")
 end
 
 def register_value(runner, parameter_name, option_name)
@@ -396,7 +398,7 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
   result = eval(ruby_eval_str)
   runner.registerInfo("Evaluating logic: #{option_apply_logic}.")
   runner.registerInfo("Converted to Ruby: #{ruby_eval_str}.")
-  runner.registerInfo("Ruby Evaluation: #{result.to_s}.")
+  runner.registerInfo("Ruby Evaluation: #{result}.")
   if not [true, false].include?(result)
     runner.registerError("Logic was not successfully evaluated: #{ruby_eval_str}")
     return
@@ -411,7 +413,7 @@ def get_data_for_sample(buildstock_csv_data, building_id, runner)
     return sample
   end
   # If we got this far, couldn't find the sample #
-  msg = "Could not find row for #{building_id.to_s} in #{File.basename(buildstock_csv).to_s}."
+  msg = "Could not find row for #{building_id} in #{File.basename(buildstock_csv)}."
   runner.registerError(msg)
   fail msg
 end

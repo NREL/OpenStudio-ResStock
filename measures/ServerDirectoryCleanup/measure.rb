@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # start the measure
 class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
   # define the name that a user will see, this method may be deprecated as

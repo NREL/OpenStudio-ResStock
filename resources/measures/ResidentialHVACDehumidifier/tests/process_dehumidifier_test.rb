@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../../../../test/minitest_helper'
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
@@ -325,7 +327,7 @@ class ProcessDehumidifierTest < MiniTest::Test
     final_objects = get_objects(model)
 
     # get new and deleted objects
-    obj_type_exclusions = ['Node', 'ScheduleTypeLimits', 'CurveBiquadratic', 'CurveQuadratic']
+    obj_type_exclusions = ['Node', 'ScheduleTypeLimits', 'CurveBicubic', 'CurveBiquadratic', 'CurveQuadratic', 'CurveQuadLinear', 'CurveQuintLinear']
     all_new_objects = get_object_additions(initial_objects, final_objects, obj_type_exclusions)
     all_del_objects = get_object_additions(final_objects, initial_objects, obj_type_exclusions)
 

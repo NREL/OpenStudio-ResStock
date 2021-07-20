@@ -1,4 +1,6 @@
-#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# !/usr/bin/env ruby
 # CLI tool to allow for recreate the localResults directory
 # This provides a critical workaround for BuildStock PAT projects
 # Written by Henry R Horsey III (henry.horsey@nrel.gov)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
@@ -560,7 +562,7 @@ class SetResidentialWindowSkylightArea < OpenStudio::Measure::ModelMeasure
         sub_surface.setName("#{surface.name} - Skylight")
         sub_surface.setSurface(surface)
 
-        runner.registerInfo("Added a skylight, totaling #{skylight_area.round(1).to_s} ft^2, to #{surface.name}.")
+        runner.registerInfo("Added a skylight, totaling #{skylight_area.round(1)} ft^2, to #{surface.name}.")
 
         if not constructions[facade].nil?
           sub_surface.setConstruction(constructions[facade])
@@ -632,7 +634,7 @@ class SetResidentialWindowSkylightArea < OpenStudio::Measure::ModelMeasure
     window_height = (window_area / num_windows.to_f) / window_width
     width_for_windows = window_width * num_windows.to_f + window_gap_x * num_window_gaps.to_f
     if width_for_windows > wall_width
-      runner.registerError("Could not fit windows on #{surface.name.to_s}.")
+      runner.registerError("Could not fit windows on #{surface.name}.")
       return false
     end
 
@@ -663,7 +665,7 @@ class SetResidentialWindowSkylightArea < OpenStudio::Measure::ModelMeasure
         add_window_to_wall(surface, window_width, window_height, group_cx, group_cy, win_num, facade, constructions, model, runner)
       end
     end
-    runner.registerInfo("Added #{num_windows.to_s} window(s), totaling #{window_area.round(1).to_s} ft^2, to #{surface.name}.")
+    runner.registerInfo("Added #{num_windows} window(s), totaling #{window_area.round(1)} ft^2, to #{surface.name}.")
     return true
   end
 
@@ -705,7 +707,7 @@ class SetResidentialWindowSkylightArea < OpenStudio::Measure::ModelMeasure
       window_polygon << window_vertex
     end
     sub_surface = OpenStudio::Model::SubSurface.new(window_polygon, model)
-    sub_surface.setName("#{surface.name} - Window #{win_num.to_s}")
+    sub_surface.setName("#{surface.name} - Window #{win_num}")
     sub_surface.setSurface(surface)
     sub_surface.setSubSurfaceType('FixedWindow')
     if not constructions[facade].nil?

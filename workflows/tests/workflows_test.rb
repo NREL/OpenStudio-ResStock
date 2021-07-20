@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
 require_relative '../../test/minitest_helper'

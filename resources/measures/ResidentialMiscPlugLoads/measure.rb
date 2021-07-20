@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://openstudio.nrel.gov/openstudio-measure-writing-guide
 
@@ -156,7 +158,7 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
       return false if not success
 
       if mel_ann > 0
-        msgs << "Plug loads with #{mel_ann.round} kWhs annual energy consumption has been assigned to unit '#{unit.name.to_s}'."
+        msgs << "Plug loads with #{mel_ann.round} kWhs annual energy consumption has been assigned to unit '#{unit.name}'."
         tot_mel_ann += mel_ann
       end
     end

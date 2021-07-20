@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # TODO: Need to handle vacations
 require_relative 'unit_conversions'
 require 'csv'
@@ -55,7 +57,7 @@ class HourlyByMonthSchedule
   private
 
   def validateValues(vals, num_outter_values, num_inner_values)
-    err_msg = "A #{num_outter_values.to_s}-element array with #{num_inner_values.to_s}-element arrays of numbers must be entered for the schedule."
+    err_msg = "A #{num_outter_values}-element array with #{num_inner_values}-element arrays of numbers must be entered for the schedule."
     if not vals.is_a?(Array)
       @runner.registerError(err_msg)
       @validated = false
@@ -90,7 +92,7 @@ class HourlyByMonthSchedule
   def calcMaxval()
     maxval = [@weekday_month_by_hour_values.flatten.max, @weekend_month_by_hour_values.flatten.max].max
     if maxval == 0.0
-      maxval == 1.0 # Prevent divide by zero
+      maxval = 1.0 # Prevent divide by zero
     end
     return maxval
   end
@@ -250,7 +252,7 @@ class MonthWeekdayWeekendSchedule
   private
 
   def validateValues(values, num_values, sch_name)
-    err_msg = "A comma-separated string of #{num_values.to_s} numbers must be entered for the #{sch_name} schedule."
+    err_msg = "A comma-separated string of #{num_values} numbers must be entered for the #{sch_name} schedule."
     if values.is_a?(Array)
       if values.length != num_values
         @runner.registerError(err_msg)
@@ -323,7 +325,7 @@ class MonthWeekdayWeekendSchedule
       maxval = @monthly_values.max * @weekend_hourly_values.max * @mult_weekend
     end
     if maxval == 0.0
-      maxval == 1.0 # Prevent divide by zero
+      maxval = 1.0 # Prevent divide by zero
     end
     return maxval
   end
@@ -2033,7 +2035,7 @@ class SchedulesFile
     schedule_file.setColumnNumber(col_index + 1)
     schedule_file.setRowstoSkipatTop(rows_to_skip)
     schedule_file.setNumberofHoursofData(num_hrs_in_year.to_i)
-    schedule_file.setMinutesperItem("#{min_per_item.to_i}")
+    schedule_file.setMinutesperItem(min_per_item.to_i)
 
     return schedule_file
   end

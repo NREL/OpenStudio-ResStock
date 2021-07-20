@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # *******************************************************************************
 # OpenStudio(R), Copyright (c) 2008-2018, Alliance for Sustainable Energy, LLC.
 # All rights reserved.

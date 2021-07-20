@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../../../../test/minitest_helper'
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
@@ -759,7 +761,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     final_objects = get_objects(model)
 
     # get new and deleted objects
-    obj_type_exclusions = ['ConnectorMixer', 'ConnectorSplitter', 'Node', 'SetpointManagerScheduled', 'ScheduleDay', 'PipeAdiabatic', 'ScheduleTypeLimits', 'SizingPlant', 'AvailabilityManagerAssignmentList']
+    obj_type_exclusions = ['ConnectorMixer', 'ConnectorSplitter', 'Node', 'SetpointManagerScheduled', 'ScheduleDay', 'PipeAdiabatic', 'ScheduleTypeLimits', 'SizingPlant', 'AvailabilityManagerAssignmentList', 'CurveCubic', 'CurveExponent']
     all_new_objects = get_object_additions(initial_objects, final_objects, obj_type_exclusions)
     all_del_objects = get_object_additions(final_objects, initial_objects, obj_type_exclusions)
 
@@ -774,6 +776,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
 
         new_object = new_object.public_send("to_#{obj_type}").get
         next unless (obj_type == 'WaterHeaterMixed') || (obj_type == 'WaterHeaterStratified')
+
         actual_values['TankVolume'] += UnitConversions.convert(new_object.tankVolume.get, 'm^3', 'gal')
         if obj_type == 'WaterHeaterMixed'
           actual_values['InputCapacity'] += UnitConversions.convert(new_object.heaterMaximumCapacity.get, 'W', 'kW')
@@ -796,8 +799,10 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
         actual_values['OnCycle'] += new_object.onCycleParasiticFuelConsumptionRate
         actual_values['OffCycle'] += new_object.offCycleParasiticFuelConsumptionRate
         next unless new_object.supplyInletModelObject.is_initialized
+
         inlet_object = new_object.supplyInletModelObject.get.connectedObject(new_object.supplyInletModelObject.get.to_Node.get.inletPort).get
         next unless inlet_object.to_WaterHeaterStratified.is_initialized
+
         storage_tank = inlet_object.to_WaterHeaterStratified.get
         set_type = runner.getStringArgumentValue('setpoint_type', argument_map)
         if set_type == Constants.WaterHeaterSetpointTypeConstant

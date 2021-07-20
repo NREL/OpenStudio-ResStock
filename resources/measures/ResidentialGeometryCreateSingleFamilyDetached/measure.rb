@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
@@ -746,7 +748,7 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
         n_points = []
         s_points = []
         surface.vertices.each do |vertex|
-          if vertex.y.abs < Constants.small
+          if vertex.y.abs < 0.0001
             n_points << vertex
           elsif vertex.y < 0
             s_points << vertex

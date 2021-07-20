@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'constants'
 require_relative 'geometry'
 require_relative 'util'
@@ -1468,7 +1470,7 @@ class HVAC
 
       if pan_heater_power > 0
 
-        mshp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Heating Coil Electric Energy')
+        mshp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Heating Coil Electricity Energy')
         mshp_sensor.setName("#{obj_name} vrf energy sensor".gsub('|', '_'))
         mshp_sensor.setKeyName(obj_name + ' htg coil')
 
@@ -1483,7 +1485,7 @@ class HVAC
         equip.setSchedule(model.alwaysOnDiscreteSchedule)
         equip.setEndUseSubcategory(obj_name + ' pan heater')
 
-        pan_heater_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, 'ElectricEquipment', 'Electric Power Level')
+        pan_heater_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, 'ElectricEquipment', 'Electricity Rate')
         pan_heater_actuator.setName("#{obj_name} pan heater actuator".gsub('|', '_'))
 
         tout_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Outdoor Air Drybulb Temperature')
@@ -1751,7 +1753,7 @@ class HVAC
     pump.setPumpControlType('Intermittent')
     pump.addToNode(plant_loop.supplyInletNode)
 
-    pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Pump Electric Energy')
+    pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Pump Electricity Energy')
     pump_sensor.setName("#{pump.name.to_s.gsub('|', '_')} s")
     pump_sensor.setKeyName(pump.name.to_s)
 
@@ -1777,24 +1779,30 @@ class HVAC
       gshp_HEAT_CAP_fT_coeff = convert_curve_gshp(hEAT_CAP_FT_SEC, false)
       gshp_HEAT_POWER_fT_coeff = convert_curve_gshp(hEAT_POWER_FT_SPEC, false)
 
-      htg_coil = OpenStudio::Model::CoilHeatingWaterToAirHeatPumpEquationFit.new(model)
+      htg_cap_curve = OpenStudio::Model::CurveQuadLinear.new(model)
+      htg_cap_curve.setName(obj_name + ' htg cap curve')
+      htg_cap_curve.setCoefficient1Constant(gshp_HEAT_CAP_fT_coeff[0])
+      htg_cap_curve.setCoefficient2w(gshp_HEAT_CAP_fT_coeff[1])
+      htg_cap_curve.setCoefficient3x(gshp_HEAT_CAP_fT_coeff[2])
+      htg_cap_curve.setCoefficient4y(gshp_HEAT_CAP_fT_coeff[3])
+      htg_cap_curve.setCoefficient5z(gshp_HEAT_CAP_fT_coeff[4])
+
+      htg_power_curve = OpenStudio::Model::CurveQuadLinear.new(model)
+      htg_power_curve.setName(obj_name + ' htg power curve')
+      htg_power_curve.setCoefficient1Constant(gshp_HEAT_POWER_fT_coeff[0])
+      htg_power_curve.setCoefficient2w(gshp_HEAT_POWER_fT_coeff[1])
+      htg_power_curve.setCoefficient3x(gshp_HEAT_POWER_fT_coeff[2])
+      htg_power_curve.setCoefficient4y(gshp_HEAT_POWER_fT_coeff[3])
+      htg_power_curve.setCoefficient5z(gshp_HEAT_POWER_fT_coeff[4])
+
+      htg_coil = OpenStudio::Model::CoilHeatingWaterToAirHeatPumpEquationFit.new(model, htg_cap_curve, htg_power_curve)
       htg_coil.setName(obj_name + ' heating coil')
       if heat_pump_capacity != Constants.SizingAuto
         htg_coil.setRatedHeatingCapacity(OpenStudio::OptionalDouble.new(UnitConversions.convert(heat_pump_capacity, 'Btu/hr', 'W'))) # Used by HVACSizing measure
       end
       htg_coil.setRatedHeatingCoefficientofPerformance(dse / heatingEIR)
-      htg_coil.setHeatingCapacityCoefficient1(gshp_HEAT_CAP_fT_coeff[0])
-      htg_coil.setHeatingCapacityCoefficient2(gshp_HEAT_CAP_fT_coeff[1])
-      htg_coil.setHeatingCapacityCoefficient3(gshp_HEAT_CAP_fT_coeff[2])
-      htg_coil.setHeatingCapacityCoefficient4(gshp_HEAT_CAP_fT_coeff[3])
-      htg_coil.setHeatingCapacityCoefficient5(gshp_HEAT_CAP_fT_coeff[4])
-      htg_coil.setHeatingPowerConsumptionCoefficient1(gshp_HEAT_POWER_fT_coeff[0])
-      htg_coil.setHeatingPowerConsumptionCoefficient2(gshp_HEAT_POWER_fT_coeff[1])
-      htg_coil.setHeatingPowerConsumptionCoefficient3(gshp_HEAT_POWER_fT_coeff[2])
-      htg_coil.setHeatingPowerConsumptionCoefficient4(gshp_HEAT_POWER_fT_coeff[3])
-      htg_coil.setHeatingPowerConsumptionCoefficient5(gshp_HEAT_POWER_fT_coeff[4])
 
-      htg_coil_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Heating Coil Electric Energy')
+      htg_coil_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Heating Coil Electricity Energy')
       htg_coil_sensor.setName("#{htg_coil.name.to_s.gsub('|', '_')} s")
       htg_coil_sensor.setKeyName(htg_coil.name.to_s)
 
@@ -1875,32 +1883,41 @@ class HVAC
       gshp_COOL_POWER_fT_coeff = convert_curve_gshp(cOOL_POWER_FT_SPEC, false)
       gshp_COOL_SH_fT_coeff = convert_curve_gshp(cOOL_SH_FT_SPEC, false)
 
-      clg_coil = OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit.new(model)
+      clg_total_cap_curve = OpenStudio::Model::CurveQuadLinear.new(model)
+      clg_total_cap_curve.setName(obj_name + ' clg total cap curve')
+      clg_total_cap_curve.setCoefficient1Constant(gshp_COOL_CAP_fT_coeff[0])
+      clg_total_cap_curve.setCoefficient2w(gshp_COOL_CAP_fT_coeff[1])
+      clg_total_cap_curve.setCoefficient3x(gshp_COOL_CAP_fT_coeff[2])
+      clg_total_cap_curve.setCoefficient4y(gshp_COOL_CAP_fT_coeff[3])
+      clg_total_cap_curve.setCoefficient5z(gshp_COOL_CAP_fT_coeff[4])
+
+      clg_sens_cap_curve = OpenStudio::Model::CurveQuintLinear.new(model)
+      clg_sens_cap_curve.setName(obj_name + ' clg sens cap curve')
+      clg_sens_cap_curve.setCoefficient1Constant(gshp_COOL_SH_fT_coeff[0])
+      clg_sens_cap_curve.setCoefficient2v(0)
+      clg_sens_cap_curve.setCoefficient3w(gshp_COOL_SH_fT_coeff[1])
+      clg_sens_cap_curve.setCoefficient4x(gshp_COOL_SH_fT_coeff[2])
+      clg_sens_cap_curve.setCoefficient5y(gshp_COOL_SH_fT_coeff[3])
+      clg_sens_cap_curve.setCoefficient6z(gshp_COOL_SH_fT_coeff[4])
+
+      clg_power_curve = OpenStudio::Model::CurveQuadLinear.new(model)
+      clg_power_curve.setName(obj_name + ' clg power curve')
+      clg_power_curve.setCoefficient1Constant(gshp_COOL_POWER_fT_coeff[0])
+      clg_power_curve.setCoefficient2w(gshp_COOL_POWER_fT_coeff[1])
+      clg_power_curve.setCoefficient3x(gshp_COOL_POWER_fT_coeff[2])
+      clg_power_curve.setCoefficient4y(gshp_COOL_POWER_fT_coeff[3])
+      clg_power_curve.setCoefficient5z(gshp_COOL_POWER_fT_coeff[4])
+
+      clg_coil = OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit.new(model, clg_total_cap_curve, clg_sens_cap_curve, clg_power_curve)
       clg_coil.setName(obj_name + ' cooling coil')
       if heat_pump_capacity != Constants.SizingAuto
         clg_coil.setRatedTotalCoolingCapacity(UnitConversions.convert(heat_pump_capacity, 'Btu/hr', 'W')) # Used by HVACSizing measure
       end
       clg_coil.setRatedCoolingCoefficientofPerformance(dse / coolingEIR)
-      clg_coil.setTotalCoolingCapacityCoefficient1(gshp_COOL_CAP_fT_coeff[0])
-      clg_coil.setTotalCoolingCapacityCoefficient2(gshp_COOL_CAP_fT_coeff[1])
-      clg_coil.setTotalCoolingCapacityCoefficient3(gshp_COOL_CAP_fT_coeff[2])
-      clg_coil.setTotalCoolingCapacityCoefficient4(gshp_COOL_CAP_fT_coeff[3])
-      clg_coil.setTotalCoolingCapacityCoefficient5(gshp_COOL_CAP_fT_coeff[4])
-      clg_coil.setSensibleCoolingCapacityCoefficient1(gshp_COOL_SH_fT_coeff[0])
-      clg_coil.setSensibleCoolingCapacityCoefficient2(0)
-      clg_coil.setSensibleCoolingCapacityCoefficient3(gshp_COOL_SH_fT_coeff[1])
-      clg_coil.setSensibleCoolingCapacityCoefficient4(gshp_COOL_SH_fT_coeff[2])
-      clg_coil.setSensibleCoolingCapacityCoefficient5(gshp_COOL_SH_fT_coeff[3])
-      clg_coil.setSensibleCoolingCapacityCoefficient6(gshp_COOL_SH_fT_coeff[4])
-      clg_coil.setCoolingPowerConsumptionCoefficient1(gshp_COOL_POWER_fT_coeff[0])
-      clg_coil.setCoolingPowerConsumptionCoefficient2(gshp_COOL_POWER_fT_coeff[1])
-      clg_coil.setCoolingPowerConsumptionCoefficient3(gshp_COOL_POWER_fT_coeff[2])
-      clg_coil.setCoolingPowerConsumptionCoefficient4(gshp_COOL_POWER_fT_coeff[3])
-      clg_coil.setCoolingPowerConsumptionCoefficient5(gshp_COOL_POWER_fT_coeff[4])
       clg_coil.setNominalTimeforCondensateRemovaltoBegin(1000)
       clg_coil.setRatioofInitialMoistureEvaporationRateandSteadyStateLatentCapacity(1.5)
 
-      clg_coil_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Cooling Coil Electric Energy')
+      clg_coil_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Cooling Coil Electricity Energy')
       clg_coil_sensor.setName("#{clg_coil.name.to_s.gsub('|', '_')} s")
       clg_coil_sensor.setKeyName(clg_coil.name.to_s)
 
@@ -2273,7 +2290,7 @@ class HVAC
     pump.setCoefficient4ofthePartLoadPerformanceCurve(0)
     pump.setPumpControlType('Intermittent')
 
-    pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Pump Electric Energy')
+    pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Pump Electricity Energy')
     pump_sensor.setName("#{pump.name.to_s.gsub('|', '_')} s")
     pump_sensor.setKeyName(pump.name.to_s)
 
@@ -2300,7 +2317,7 @@ class HVAC
       boiler.setEfficiencyCurveTemperatureEvaluationVariable('LeavingBoiler')
     end
     boiler.setNormalizedBoilerEfficiencyCurve(boiler_eff_curve)
-    boiler.setDesignWaterOutletTemperature(UnitConversions.convert(design_temp - 32.0, 'R', 'K'))
+    boiler.setWaterOutletUpperTemperatureLimit(UnitConversions.convert(design_temp - 32.0, 'R', 'K'))
     boiler.setMinimumPartLoadRatio(0.0)
     boiler.setMaximumPartLoadRatio(1.0)
     boiler.setBoilerFlowMode('LeavingSetpointModulated')
@@ -3373,7 +3390,7 @@ class HVAC
     unit.spaces.each do |space|
       next if Geometry.space_is_unfinished(space)
 
-      space_obj_name = "#{obj_name} benchmark|#{space.name.to_s}"
+      space_obj_name = "#{obj_name} benchmark|#{space.name}"
 
       next unless (mel_ann > 0) && use_benchmark_energy
 
@@ -3448,7 +3465,7 @@ class HVAC
         equip.electricEquipmentDefinition.remove
       end
 
-      space_obj_name = "#{obj_name} benchmark|#{space.name.to_s}"
+      space_obj_name = "#{obj_name} benchmark|#{space.name}"
 
       space.electricEquipment.each do |equip|
         next unless equip.name.to_s == space_obj_name

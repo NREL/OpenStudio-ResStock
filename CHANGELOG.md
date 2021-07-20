@@ -1,6 +1,7 @@
 ## ResStock v2.5.0 (pending)
 
 Features
+- Update to OpenStudio v3.2.1 ([#604](https://github.com/NREL/resstock/pull/604))
 - Model multifamily and single-family attached buildings as individual dwelling units ([#439](https://github.com/NREL/resstock/pull/439))
 - Reduce vacant unit heating setpoints to 55F ([#541](https://github.com/NREL/resstock/pull/541))
 - Introduce a CEC Building Climate Zone tag for samples in California ([#548](https://github.com/NREL/resstock/pull/548))

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../../../../test/minitest_helper'
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
@@ -261,7 +263,7 @@ class ProcessMiniSplitHeatPumpTest < MiniTest::Test
     args_hash = {}
     args_hash['max_cooling_capacity'] = 1.5
     args_hash['max_heating_capacity'] = 1.5
-    expected_num_del_objects = { 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'BoilerHotWater' => 1, 'ControllerWaterCoil' => num_units, 'CoilHeatingWater' => num_units, 'FanConstantVolume' => num_units, 'CoilCoolingDXSingleSpeed' => num_units, 'ZoneHVACPackagedTerminalAirConditioner' => num_units, 'SetpointManagerScheduled' => 1, 'EnergyManagementSystemSensor' => 1, 'EnergyManagementSystemProgram' => 1, 'EnergyManagementSystemOutputVariable' => 1, 'EnergyManagementSystemProgramCallingManager' => 1 }
+    expected_num_del_objects = { 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'BoilerHotWater' => 1, 'ControllerWaterCoil' => num_units, 'CoilHeatingWater' => num_units, 'FanOnOff' => num_units, 'CoilCoolingDXSingleSpeed' => num_units, 'ZoneHVACPackagedTerminalAirConditioner' => num_units, 'SetpointManagerScheduled' => 1, 'EnergyManagementSystemSensor' => 1, 'EnergyManagementSystemProgram' => 1, 'EnergyManagementSystemOutputVariable' => 1, 'EnergyManagementSystemProgramCallingManager' => 1 }
     expected_num_new_objects = { 'AirLoopHVACUnitarySystem' => num_units * 2, 'AirLoopHVAC' => num_units * 2, 'CoilCoolingDXMultiSpeed' => num_units, 'FanOnOff' => num_units * 2, 'AirTerminalSingleDuctConstantVolumeNoReheat' => num_units * 2, 'CoilHeatingElectric' => num_units, 'CoilHeatingDXMultiSpeed' => num_units, 'CoilCoolingDXMultiSpeedStageData' => num_units * 4, 'CoilHeatingDXMultiSpeedStageData' => num_units * 4, 'UnitarySystemPerformanceMultispeed' => num_units * 2 }
     expected_values = { 'CoolingCOP' => [4.36, 3.77, 3.17, 2.34], 'HeatingCOP' => [4.27, 3.42, 3.13, 2.84], 'CoolingNominalCapacity' => [UnitConversions.convert(3.0, 'ton', 'W')] * 4, 'HeatingNominalCapacity' => [UnitConversions.convert(3.0, 'ton', 'W')] * 4, 'SuppNominalCapacity' => 5861.42, 'MaximumSupplyAirTemperature' => 93.33, 'is_ducted' => false }
     _test_measure('SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_PTAC.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units * 8 + 1)
@@ -344,7 +346,7 @@ class ProcessMiniSplitHeatPumpTest < MiniTest::Test
     final_objects = get_objects(model)
 
     # get new and deleted objects
-    obj_type_exclusions = ['CurveQuadratic', 'CurveBiquadratic', 'CurveCubic', 'Node', 'AirLoopHVACZoneMixer', 'SizingSystem', 'AirLoopHVACZoneSplitter', 'ScheduleTypeLimits', 'CurveExponent', 'ScheduleConstant', 'SizingPlant', 'PipeAdiabatic', 'ConnectorSplitter', 'ModelObjectList', 'ConnectorMixer', 'AvailabilityManagerAssignmentList']
+    obj_type_exclusions = ['CurveBicubic', 'CurveQuadratic', 'CurveBiquadratic', 'CurveCubic', 'CurveQuadLinear', 'CurveQuintLinear', 'Node', 'AirLoopHVACZoneMixer', 'SizingSystem', 'AirLoopHVACZoneSplitter', 'ScheduleTypeLimits', 'CurveExponent', 'ScheduleConstant', 'SizingPlant', 'PipeAdiabatic', 'ConnectorSplitter', 'ModelObjectList', 'ConnectorMixer', 'AvailabilityManagerAssignmentList']
     all_new_objects = get_object_additions(initial_objects, final_objects, obj_type_exclusions)
     all_del_objects = get_object_additions(final_objects, initial_objects, obj_type_exclusions)
 

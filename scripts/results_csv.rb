@@ -1,4 +1,6 @@
-#!/bin/env/ruby
+# frozen_string_literal: true
+
+# !/bin/env/ruby
 # Extract the results.csv file from the openstudio-server web container by hand
 # This file should be run within the rails console context
 # To do this, run `rails c require_relative 'results_csv'`

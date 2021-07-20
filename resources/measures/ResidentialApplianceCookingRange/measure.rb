@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
 unless File.exist? resources_path
   resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
@@ -151,9 +153,9 @@ class ResidentialCookingRange < OpenStudio::Measure::ModelMeasure
         if has_elec_ignition
           s_ignition = " and #{ann_i.round} kWhs"
         end
-        msgs << "A cooking range with #{s_ann}#{s_ignition} annual energy consumption has been assigned to space '#{space.name.to_s}'."
+        msgs << "A cooking range with #{s_ann}#{s_ignition} annual energy consumption has been assigned to space '#{space.name}'."
       else
-        msgs << "A cooking range with #{ann_e.round} kWhs annual energy consumption has been assigned to space '#{space.name.to_s}'."
+        msgs << "A cooking range with #{ann_e.round} kWhs annual energy consumption has been assigned to space '#{space.name}'."
       end
 
       tot_ann_e += ann_e

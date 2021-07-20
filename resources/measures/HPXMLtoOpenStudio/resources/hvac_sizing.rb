@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'geometry'
 require_relative 'hvac'
 require_relative 'unit_conversions'
@@ -1398,7 +1400,7 @@ class HVACSizing
         unit_final.dse_Fregain = 1.0
 
       else
-        runner.registerError("Unexpected duct location: #{ducts.LocationSpace.name.to_s}")
+        runner.registerError("Unexpected duct location: #{ducts.LocationSpace.name}")
         return
       end
     end
@@ -2222,7 +2224,7 @@ class HVACSizing
     if (total - 1.0).abs > 0.001
       s = ''
       unit_final.Zone_Ratios.each do |zone, flow_ratio|
-        s += " #{zone.name.to_s}: #{flow_ratio.round(3).to_s},"
+        s += " #{zone.name}: #{flow_ratio.round(3)},"
       end
       runner.registerError("Zone flow ratios do not add up to one:#{s.chomp(',')}")
       return
@@ -2505,8 +2507,8 @@ class HVACSizing
     elsif mechVentType == Constants.VentTypeNone
     # nop
     else
-        runner.registerError("Unexpected mechanical ventilation type: #{mechVentType}.")
-        return
+      runner.registerError("Unexpected mechanical ventilation type: #{mechVentType}.")
+      return
     end
 
     return [q_unb, q_bal_Sens, q_bal_Lat]
@@ -2527,7 +2529,7 @@ class HVACSizing
           shade = shading_material.to_Shade.get
           int_shade_heat_to_cool_ratio = shade.solarTransmittance
         else
-          runner.registerError("Unhandled shading material: #{shading_material.name.to_s}.")
+          runner.registerError("Unhandled shading material: #{shading_material.name}.")
           return
         end
       end
@@ -2875,14 +2877,14 @@ class HVACSizing
           hvac.CapacityRatioCooling = capacityRatioCooling.split(',').map(&:to_f)
 
           if not clg_equip.designSpecificationMultispeedObject.is_initialized
-            runner.registerError("DesignSpecificationMultispeedObject not set for #{clg_equip.name.to_s}.")
+            runner.registerError("DesignSpecificationMultispeedObject not set for #{clg_equip.name}.")
             return nil
           end
           perf = clg_equip.designSpecificationMultispeedObject.get
           hvac.FanspeedRatioCooling = []
           perf.supplyAirflowRatioFields.each do |airflowRatioField|
             if not airflowRatioField.coolingRatio.is_initialized
-              runner.registerError("Cooling airflow ratio not set for #{perf.name.to_s}")
+              runner.registerError("Cooling airflow ratio not set for #{perf.name}")
               return nil
             end
             hvac.FanspeedRatioCooling << airflowRatioField.coolingRatio.get
@@ -3010,7 +3012,7 @@ class HVACSizing
           if htg_coil.heatingDesignCapacity.is_initialized
             hvac.FixedHeatingCapacity = UnitConversions.convert(htg_coil.heatingDesignCapacity.get, 'W', 'ton')
           end
-          hvac.BoilerDesignTemp = UnitConversions.convert(model.getBoilerHotWaters[0].designWaterOutletTemperature.get, 'C', 'F')
+          hvac.BoilerDesignTemp = UnitConversions.convert(htg_coil.plantLoop.get.sizingPlant.designLoopExitTemperature, 'C', 'F')
 
         elsif htg_coil.is_a? OpenStudio::Model::CoilHeatingDXSingleSpeed
           hvac.NumSpeedsHeating = 1
@@ -3203,8 +3205,8 @@ class HVACSizing
       elsif (ua_type == 'total') || (ua_type == 'foundation')
       # skip
       else
-          runner.registerError("Unexpected ua_type: '#{ua_type}'.")
-          return nil
+        runner.registerError("Unexpected ua_type: '#{ua_type}'.")
+        return nil
       end
     end
     t_attic_iter = sum_uat / attic_UAs['total']
@@ -3246,7 +3248,7 @@ class HVACSizing
 
   def self.get_space_ua_values(runner, space, weather, unit)
     if Geometry.space_is_finished(space)
-      runner.registerError("Method should not be called for a finished space: '#{space.name.to_s}'.")
+      runner.registerError("Method should not be called for a finished space: '#{space.name}'.")
       return
     end
 
@@ -3313,8 +3315,8 @@ class HVACSizing
         elsif ua_type == 'total'
         # skip
         else
-            runner.registerError("Unexpected space ua type: '#{ua_type}'.")
-            return nil
+          runner.registerError("Unexpected space ua type: '#{ua_type}'.")
+          return nil
         end
       end
       design_temp = sum_uat / space_UAs['total']
@@ -3345,8 +3347,8 @@ class HVACSizing
         elsif (ua_type == 'total') || (ua_type == 'foundation')
         # skip
         else
-            runner.registerError("Unexpected space ua type: '#{ua_type}'.")
-            return nil
+          runner.registerError("Unexpected space ua type: '#{ua_type}'.")
+          return nil
         end
       end
       percent_ua_finished = ua_finished / (ua_finished + ua_outside)
@@ -3862,7 +3864,7 @@ class HVACSizing
 
     # Get wall insulation R-value/height from Kiva:Foundation object
     if not surface.adjacentFoundation.is_initialized
-      runner.registerError("Could not get foundation object for wall '#{surface.name.to_s}'.")
+      runner.registerError("Could not get foundation object for wall '#{surface.name}'.")
       return
     end
     foundation = surface.adjacentFoundation.get
@@ -4243,7 +4245,7 @@ class HVACSizing
   def self.display_zone_loads(runner, unit, zone_loads)
     zone_loads.keys.each do |thermal_zone|
       loads = zone_loads[thermal_zone]
-      s = "#{unit.name.to_s} Zone Loads for #{thermal_zone.name.to_s}:"
+      s = "#{unit.name} Zone Loads for #{thermal_zone.name}:"
       properties = [
         :Heat_Windows, :Heat_Skylights,
         :Heat_Doors, :Heat_Walls,
@@ -4261,14 +4263,14 @@ class HVACSizing
         :Dehumid_IntGains_Sens, :Dehumid_IntGains_Lat,
       ]
       properties.each do |property|
-        s += "\n#{property.to_s.gsub('_', ' ')} = #{loads.send(property).round(0).to_s} Btu/hr"
+        s += "\n#{property.to_s.gsub('_', ' ')} = #{loads.send(property).round(0)} Btu/hr"
       end
       runner.registerInfo("#{s}\n")
     end
   end
 
   def self.display_unit_initial_results(runner, unit, unit_init)
-    s = "#{unit.name.to_s} Initial Results (w/o ducts):"
+    s = "#{unit.name} Initial Results (w/o ducts):"
     loads = [
       :Heat_Load, :Cool_Load_Sens, :Cool_Load_Lat,
       :Dehumid_Load_Sens, :Dehumid_Load_Lat,
@@ -4277,16 +4279,16 @@ class HVACSizing
       :Heat_Airflow, :Cool_Airflow,
     ]
     loads.each do |load|
-      s += "\n#{load.to_s.gsub('_', ' ')} = #{unit_init.send(load).round(0).to_s} Btu/hr"
+      s += "\n#{load.to_s.gsub('_', ' ')} = #{unit_init.send(load).round(0)} Btu/hr"
     end
     airflows.each do |airflow|
-      s += "\n#{airflow.to_s.gsub('_', ' ')} = #{unit_init.send(airflow).round(0).to_s} cfm"
+      s += "\n#{airflow.to_s.gsub('_', ' ')} = #{unit_init.send(airflow).round(0)} cfm"
     end
     runner.registerInfo("#{s}\n")
   end
 
   def self.display_unit_final_results(runner, unit, unit_final)
-    s = "#{unit.name.to_s} Final Results:"
+    s = "#{unit.name} Final Results:"
     loads = [
       :Heat_Load, :Heat_Load_Ducts,
       :Cool_Load_Lat, :Cool_Load_Sens,
@@ -4304,16 +4306,16 @@ class HVACSizing
       :Dehumid_WaterRemoval,
     ]
     loads.each do |load|
-      s += "\n#{load.to_s.gsub('_', ' ')} = #{unit_final.send(load).round(0).to_s} Btu/hr"
+      s += "\n#{load.to_s.gsub('_', ' ')} = #{unit_final.send(load).round(0)} Btu/hr"
     end
     caps.each do |cap|
-      s += "\n#{cap.to_s.gsub('_', ' ')} = #{unit_final.send(cap).round(0).to_s} Btu/hr"
+      s += "\n#{cap.to_s.gsub('_', ' ')} = #{unit_final.send(cap).round(0)} Btu/hr"
     end
     airflows.each do |airflow|
-      s += "\n#{airflow.to_s.gsub('_', ' ')} = #{unit_final.send(airflow).round(0).to_s} cfm"
+      s += "\n#{airflow.to_s.gsub('_', ' ')} = #{unit_final.send(airflow).round(0)} cfm"
     end
     waters.each do |water|
-      s += "\n#{water.to_s.gsub('_', ' ')} = #{unit_final.send(water).round(0).to_s} L/day"
+      s += "\n#{water.to_s.gsub('_', ' ')} = #{unit_final.send(water).round(0)} L/day"
     end
     runner.registerInfo("#{s}\n")
   end

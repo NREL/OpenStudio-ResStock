@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'constants'
 require_relative 'unit_conversions'
 
@@ -261,11 +263,11 @@ class Material
   end
 
   def self.GypsumWall(thick_in)
-    return new(name = "Drywall #{thick_in.to_s} in.", thick_in = thick_in, mat_base = BaseMaterial.Gypsum, k_in = nil, rho = nil, cp = nil, tAbs = 0.9, sAbs = 0.5, vAbs = 0.1)
+    return new(name = "Drywall #{thick_in} in.", thick_in = thick_in, mat_base = BaseMaterial.Gypsum, k_in = nil, rho = nil, cp = nil, tAbs = 0.9, sAbs = 0.5, vAbs = 0.1)
   end
 
   def self.GypsumCeiling(thick_in)
-    return new(name = "Drywall #{thick_in.to_s} in.", thick_in = thick_in, mat_base = BaseMaterial.Gypsum, k_in = nil, rho = nil, cp = nil, tAbs = 0.9, sAbs = 0.3, vAbs = 0.1)
+    return new(name = "Drywall #{thick_in} in.", thick_in = thick_in, mat_base = BaseMaterial.Gypsum, k_in = nil, rho = nil, cp = nil, tAbs = 0.9, sAbs = 0.3, vAbs = 0.1)
   end
 
   def self.RoofingAsphaltShinglesDark
@@ -361,7 +363,7 @@ class Material
   end
 
   def self.Stud2x(thick_in)
-    return new(name = "Stud 2x #{thick_in.to_s} in.", thick_in = thick_in, mat_base = BaseMaterial.Wood)
+    return new(name = "Stud 2x #{thick_in} in.", thick_in = thick_in, mat_base = BaseMaterial.Wood)
   end
 
   def self.Stud2x4
@@ -377,7 +379,7 @@ class Material
   end
 
   def self.Plywood(thick_in)
-    return new(name = "Plywood #{thick_in.to_s} in.", thick_in = thick_in, mat_base = BaseMaterial.Wood)
+    return new(name = "Plywood #{thick_in} in.", thick_in = thick_in, mat_base = BaseMaterial.Wood)
   end
 
   def self.RadiantBarrier

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Add classes or functions here than can be used across a variety of our python classes and modules.
 require_relative 'constants'
 require_relative 'util'
@@ -626,7 +628,7 @@ class Waterheater
     lat_cool_sensor.setName("#{obj_name_hpwh} lat cool")
     lat_cool_sensor.setKeyName("#{obj_name_hpwh} coil")
 
-    fan_power_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Fan Electric Power')
+    fan_power_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Fan Electricity Rate')
     fan_power_sensor.setName("#{obj_name_hpwh} fan pwr")
     fan_power_sensor.setKeyName("#{obj_name_hpwh} fan")
 
@@ -728,8 +730,8 @@ class Waterheater
       hpwh_ducting_program.addLine("Set #{lat_act_actuator.name} = 0")
     elsif ducting == Constants.VentTypeSupply
       hpwh_ducting_program.addLine("Set rho = (@RhoAirFnPbTdbW HPWH_amb_P_#{unit_index} HPWHTair_out_#{unit_index} HPWHWair_out_#{unit_index})")
-      hpwh_ducting_program.addLine("Set cp = (@CpAirFnWTdb HPWHWair_out_#{unit_index} HPWHTair_out_#{unit_index})")
-      hpwh_ducting_program.addLine("Set h = (@HFnTdbW HPWHTair_out_#{unit_index} HPWHWair_out_#{unit_index})")
+      hpwh_ducting_program.addLine("Set cp = (@CpAirFnW HPWHWair_out_#{unit_index})")
+      hpwh_ducting_program.addLine("Set h = (@HFnTdbW HPWHTair_out_#{unit_index})")
       hpwh_ducting_program.addLine("Set HPWH_sens_gain = rho*cp*(HPWHTair_out_#{unit_index}-#{amb_temp_sensor.name})*V_airHPWH_#{unit_index}")
       hpwh_ducting_program.addLine("Set HPWH_lat_gain = h*rho*(HPWHWair_out_#{unit_index}-#{amb_w_sensor.name})*V_airHPWH_#{unit_index}")
       hpwh_ducting_program.addLine("Set #{tamb_act_actuator.name} = T_hpwh_inlet_#{unit_index}")
@@ -739,7 +741,7 @@ class Waterheater
       hpwh_ducting_program.addLine("Set #{lat_act_actuator.name} = HPWH_lat_gain_#{unit_index}")
     elsif ducting == Constants.VentTypeExhaust
       hpwh_ducting_program.addLine("Set rho = (@RhoAirFnPbTdbW HPWH_amb_P_#{unit_index} HPWHTair_out_#{unit_index} HPWHWair_out_#{unit_index})")
-      hpwh_ducting_program.addLine("Set cp = (@CpAirFnWTdb HPWHWair_out_#{unit_index} HPWHTair_out_#{unit_index})")
+      hpwh_ducting_program.addLine("Set cp = (@CpAirFnW HPWHWair_out_#{unit_index} HPWHTair_out_#{unit_index})")
       hpwh_ducting_program.addLine("Set h = (@HFnTdbW HPWHTair_out_#{unit_index} HPWHWair_out_#{unit_index})")
       hpwh_ducting_program.addLine("Set HPWH_sens_gain = rho*cp*(#{tout_sensor.name}-#{amb_temp_sensor.name})*V_airHPWH_#{unit_index}")
       hpwh_ducting_program.addLine("Set HPWH_lat_gain = h*rho*(Wout_#{unit_index}-#{amb_w_sensor.name})*V_airHPWH_#{unit_index}")
@@ -1030,7 +1032,7 @@ class Waterheater
         end
       end
       if objects_to_remove.size > 0
-        runner.registerInfo("Removed existing water heater from plant loop '#{pl.name.to_s}'.")
+        runner.registerInfo("Removed existing water heater from plant loop '#{pl.name}'.")
       end
       objects_to_remove.uniq.each do |object|
         begin

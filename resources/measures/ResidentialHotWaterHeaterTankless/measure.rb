@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
@@ -193,11 +195,11 @@ class ResidentialHotWaterHeaterTankless < OpenStudio::Measure::ModelMeasure
       heatername = heater.name.get
       loopname = heater.plantLoop.get.name.get
 
-      capacity_si = heater.getHeaterMaximumCapacity.get
-      capacity = UnitConversions.convert(capacity_si.value, 'W', 'kBtu/hr')
-      volume_si = heater.getTankVolume.get
-      volume = UnitConversions.convert(volume_si.value, 'm^3', 'gal')
-      te = heater.getHeaterThermalEfficiency.get.value
+      capacity_si = heater.heaterMaximumCapacity.get
+      capacity = UnitConversions.convert(capacity_si, 'W', 'kBtu/hr')
+      volume_si = heater.tankVolume.get
+      volume = UnitConversions.convert(volume_si, 'm^3', 'gal')
+      te = heater.heaterThermalEfficiency.get
 
       water_heaters << "Water heater '#{heatername}' added to plant loop '#{loopname}', with a capacity of #{capacity.round(1)} kBtu/hr" +
                        " and a burner efficiency of  #{te.round(2)}."

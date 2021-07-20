@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'constants'
 require_relative 'unit_conversions'
 require_relative 'materials'
@@ -144,7 +146,7 @@ class WallConstructions
     stud_frac = 1.5 / framing_spacing
     misc_framing_factor = framing_factor - stud_frac
     if misc_framing_factor < 0
-      runner.registerError("Framing Factor (#{framing_factor.to_s}) is less than the framing solely provided by the studs (#{stud_frac.to_s}).")
+      runner.registerError("Framing Factor (#{framing_factor}) is less than the framing solely provided by the studs (#{stud_frac}).")
       return false
     end
     dsGapFactor = get_gap_factor(install_grade, framing_factor, cavity_r)
@@ -1602,7 +1604,7 @@ class FoundationConstructions
     end
     if surface.outsideBoundaryCondition.downcase == 'foundation'
       if exposed_perimeter <= 0
-        runner.registerError("Calculated an exposed perimeter <= 0 for slab '#{surface.name.to_s}'.")
+        runner.registerError("Calculated an exposed perimeter <= 0 for slab '#{surface.name}'.")
         return false
       end
       # Assign surface to Kiva foundation
@@ -1983,7 +1985,7 @@ class SubsurfaceConstructions
       end
     end
 
-    runner.registerInfo("Construction#{sc_msg} added to #{subsurfaces.size.to_s} #{constr_name.gsub('Construction', '').downcase}(s).")
+    runner.registerInfo("Construction#{sc_msg} added to #{subsurfaces.size} #{constr_name.gsub('Construction', '').downcase}(s).")
 
     return true
   end
@@ -2068,7 +2070,7 @@ class ThermalMassConstructions
 
       # Remove any existing internal mass
       space.internalMass.each do |im|
-        runner.registerInfo("Removing internal mass object '#{im.name.to_s}' from space '#{space.name.to_s}'")
+        runner.registerInfo("Removing internal mass object '#{im.name}' from space '#{space.name}'")
         imdef = im.internalMassDefinition
         im.remove
         imdef.resetConstruction
@@ -2078,14 +2080,14 @@ class ThermalMassConstructions
       # Add partition walls within spaces (those without geometric representation)
       # as internal mass object.
       imdef = OpenStudio::Model::InternalMassDefinition.new(model)
-      imdef.setName("#{space.name.to_s} Partition")
+      imdef.setName("#{space.name} Partition")
       imdef.setSurfaceArea(part_surface_area)
       imdefs << imdef
 
       im = OpenStudio::Model::InternalMass.new(imdef)
-      im.setName("#{space.name.to_s} Partition")
+      im.setName("#{space.name} Partition")
       im.setSpace(space)
-      runner.registerInfo("Added internal mass object '#{im.name.to_s}' to space '#{space.name.to_s}'")
+      runner.registerInfo("Added internal mass object '#{im.name}' to space '#{space.name}'")
     end
 
     if not WallConstructions.apply_wood_stud(runner, model,
@@ -2142,9 +2144,9 @@ class ThermalMassConstructions
       next if furnAreaFraction <= 0
       next if space.floorArea <= 0
 
-      mat_obj_name_space = "#{Constants.ObjectNameFurniture} material #{space.name.to_s}"
-      constr_obj_name_space = "#{Constants.ObjectNameFurniture} construction #{space.name.to_s}"
-      mass_obj_name_space = "#{Constants.ObjectNameFurniture} mass #{space.name.to_s}"
+      mat_obj_name_space = "#{Constants.ObjectNameFurniture} material #{space.name}"
+      constr_obj_name_space = "#{Constants.ObjectNameFurniture} construction #{space.name}"
+      mass_obj_name_space = "#{Constants.ObjectNameFurniture} mass #{space.name}"
 
       furnThickness = UnitConversions.convert(furnMass / (furnDensity * furnAreaFraction), 'ft', 'in')
 
@@ -2403,14 +2405,14 @@ class Construction
   def validated?(runner)
     # Check that sum of path fracs equal 1
     if (@sum_path_fracs <= 0.999) || (@sum_path_fracs >= 1.001)
-      runner.registerError("Invalid construction: Sum of path fractions (#{@sum_path_fracs.to_s}) is not 1.")
+      runner.registerError("Invalid construction: Sum of path fractions (#{@sum_path_fracs}) is not 1.")
       return false
     end
 
     # Check that all path fractions are not negative
     @path_fracs.each do |path_frac|
       if path_frac < 0
-        runner.registerError("Invalid construction: Path fraction (#{path_frac.to_s}) must be greater than or equal to 0.")
+        runner.registerError("Invalid construction: Path fraction (#{path_frac}) must be greater than or equal to 0.")
         return false
       end
     end
@@ -2549,7 +2551,7 @@ class Construction
         mat.setVisibleAbsorptance(material.vAbs)
       end
     end
-    runner.registerInfo("Material '#{mat.name.to_s}' was created.")
+    runner.registerInfo("Material '#{mat.name}' was created.")
     return mat
   end
 
@@ -2564,7 +2566,7 @@ class Construction
       mats_s += layer.name.to_s + ' | '
     end
     mats_s.chomp!(' | ')
-    runner.registerInfo("Construction '#{surface.construction.get.name.to_s}' was created with #{num_layers.to_s} material#{s.to_s} (#{mats_s.to_s}).")
+    runner.registerInfo("Construction '#{surface.construction.get.name}' was created with #{num_layers} material#{s} (#{mats_s}).")
   end
 
   def print_construction_assignment(runner, surface)
@@ -2575,7 +2577,7 @@ class Construction
     else
       type_s = 'Surface'
     end
-    runner.registerInfo("#{type_s.to_s} '#{surface.name.to_s}' has been assigned construction '#{surface.construction.get.name.to_s}'.")
+    runner.registerInfo("#{type_s} '#{surface.name}' has been assigned construction '#{surface.construction.get.name}'.")
   end
 end
 
@@ -2879,7 +2881,7 @@ def get_surface_ufactor(runner, surface, surface_type, register_error = false)
   else
     if not surface.construction.is_initialized
       if register_error
-        runner.registerError("Construction not assigned to '#{surface.name.to_s}'.")
+        runner.registerError("Construction not assigned to '#{surface.name}'.")
       end
       return
     end
@@ -2889,7 +2891,7 @@ def get_surface_ufactor(runner, surface, surface_type, register_error = false)
       # two different values for, e.g., floor vs adjacent roofceiling
       if not surface.adjacentSurface.get.construction.is_initialized
         if register_error
-          runner.registerError("Construction not assigned to '#{surface.adjacentSurface.get.name.to_s}'.")
+          runner.registerError("Construction not assigned to '#{surface.adjacentSurface.get.name}'.")
         end
         return
       end
@@ -2903,18 +2905,18 @@ end
 def get_window_simple_glazing(runner, surface, register_error = false)
   if not surface.construction.is_initialized
     if register_error
-      runner.registerError("Construction not assigned to '#{surface.name.to_s}'.")
+      runner.registerError("Construction not assigned to '#{surface.name}'.")
     end
     return
   end
   construction = surface.construction.get
   if not construction.to_LayeredConstruction.is_initialized
-    runner.registerError("Expected LayeredConstruction for '#{surface.name.to_s}'.")
+    runner.registerError("Expected LayeredConstruction for '#{surface.name}'.")
     return
   end
   window_layered_construction = construction.to_LayeredConstruction.get
   if not window_layered_construction.getLayer(0).to_SimpleGlazing.is_initialized
-    runner.registerError("Expected SimpleGlazing for '#{surface.name.to_s}'.")
+    runner.registerError("Expected SimpleGlazing for '#{surface.name}'.")
     return
   end
   simple_glazing = window_layered_construction.getLayer(0).to_SimpleGlazing.get

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'schedules'
 require_relative 'geometry'
 require_relative 'unit_conversions'
@@ -13,7 +15,7 @@ class Lighting
 
     # Finished spaces for the unit
     unit_finished_spaces.each do |space|
-      space_obj_name = "#{Constants.ObjectNameLightingInterior(unit.name.to_s)} #{space.name.to_s}"
+      space_obj_name = "#{Constants.ObjectNameLightingInterior(unit.name.to_s)} #{space.name}"
 
       col_name = 'lighting_interior'
       if sch.nil?
@@ -48,7 +50,7 @@ class Lighting
     garage_spaces = Geometry.get_garage_spaces(model.getSpaces)
     gfa = Geometry.get_floor_area_from_spaces(garage_spaces)
     garage_spaces.each do |garage_space|
-      space_obj_name = "#{Constants.ObjectNameLightingGarage} #{garage_space.name.to_s}"
+      space_obj_name = "#{Constants.ObjectNameLightingGarage} #{garage_space.name}"
       space_ltg_ann = garage_ann * UnitConversions.convert(garage_space.floorArea, 'm^2', 'ft^2') / gfa
 
       col_name = 'lighting_garage'

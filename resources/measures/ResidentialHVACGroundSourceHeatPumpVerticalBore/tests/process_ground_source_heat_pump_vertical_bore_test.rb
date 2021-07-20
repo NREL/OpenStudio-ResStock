@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../../../../test/minitest_helper'
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
@@ -343,7 +345,7 @@ class ProcessGroundSourceHeatPumpVerticalBoreTest < MiniTest::Test
   def test_retrofit_replace_central_system_ptac
     num_units = 1
     args_hash = {}
-    expected_num_del_objects = { 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'BoilerHotWater' => 1, 'ControllerWaterCoil' => num_units, 'CoilHeatingWater' => num_units, 'FanConstantVolume' => num_units, 'CoilCoolingDXSingleSpeed' => num_units, 'ZoneHVACPackagedTerminalAirConditioner' => num_units, 'SetpointManagerScheduled' => 1, 'EnergyManagementSystemSensor' => 1, 'EnergyManagementSystemProgram' => 1, 'EnergyManagementSystemOutputVariable' => 1, 'EnergyManagementSystemProgramCallingManager' => 1 }
+    expected_num_del_objects = { 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'BoilerHotWater' => 1, 'ControllerWaterCoil' => num_units, 'CoilHeatingWater' => num_units, 'FanOnOff' => num_units, 'CoilCoolingDXSingleSpeed' => num_units, 'ZoneHVACPackagedTerminalAirConditioner' => num_units, 'SetpointManagerScheduled' => 1, 'EnergyManagementSystemSensor' => 1, 'EnergyManagementSystemProgram' => 1, 'EnergyManagementSystemOutputVariable' => 1, 'EnergyManagementSystemProgramCallingManager' => 1 }
     expected_num_new_objects = { 'SetpointManagerFollowGroundTemperature' => num_units * 1, 'GroundHeatExchangerVertical' => num_units * 1, 'FanOnOff' => num_units * 2, 'CoilHeatingWaterToAirHeatPumpEquationFit' => num_units, 'CoilCoolingWaterToAirHeatPumpEquationFit' => num_units, 'PumpVariableSpeed' => num_units * 1, 'CoilHeatingElectric' => num_units, 'PlantLoop' => num_units * 1, 'AirTerminalSingleDuctConstantVolumeNoReheat' => num_units * 2, 'AirLoopHVACUnitarySystem' => num_units * 2, 'AirLoopHVAC' => num_units * 2, 'EnergyManagementSystemSensor' => num_units * 3, 'EnergyManagementSystemProgram' => num_units * 1, 'EnergyManagementSystemOutputVariable' => num_units * 2, 'EnergyManagementSystemProgramCallingManager' => num_units * 1 }
     expected_values = { 'HeatingCOP' => 3.65, 'CoolingCOP' => 5.36, 'CoolingNominalCapacity' => 10550.55, 'HeatingNominalCapacity' => 10550.55, 'MaximumSupplyAirTemperature' => 76.66, 'GlycolFrac' => 0.3 }
     _test_measure('SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_PTAC.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units * 6 + 1)
@@ -445,7 +447,7 @@ class ProcessGroundSourceHeatPumpVerticalBoreTest < MiniTest::Test
     final_objects = get_objects(model)
 
     # get new and deleted objects
-    obj_type_exclusions = ['CurveQuadratic', 'CurveBiquadratic', 'CurveCubic', 'Node', 'AirLoopHVACZoneMixer', 'SizingSystem', 'AirLoopHVACZoneSplitter', 'ScheduleTypeLimits', 'CurveExponent', 'ScheduleConstant', 'SizingPlant', 'PipeAdiabatic', 'ConnectorSplitter', 'ModelObjectList', 'ConnectorMixer', 'AvailabilityManagerAssignmentList']
+    obj_type_exclusions = ['CurveBicubic', 'CurveQuadratic', 'CurveBiquadratic', 'CurveCubic', 'CurveQuadLinear', 'CurveQuintLinear', 'Node', 'AirLoopHVACZoneMixer', 'SizingSystem', 'AirLoopHVACZoneSplitter', 'ScheduleTypeLimits', 'CurveExponent', 'ScheduleConstant', 'SizingPlant', 'PipeAdiabatic', 'ConnectorSplitter', 'ModelObjectList', 'ConnectorMixer', 'AvailabilityManagerAssignmentList']
     all_new_objects = get_object_additions(initial_objects, final_objects, obj_type_exclusions)
     all_del_objects = get_object_additions(final_objects, initial_objects, obj_type_exclusions)
 

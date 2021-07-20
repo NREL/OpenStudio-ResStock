@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
@@ -69,6 +71,9 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
 
     fan_coil_heating = runner.getBoolArgumentValue('fan_coil_heating', user_arguments)
     central_boiler_fuel_type = HelperMethods.eplus_fuel_map(runner.getStringArgumentValue('central_boiler_fuel_type', user_arguments))
+    if central_boiler_fuel_type == 'Propane'
+      central_boiler_fuel_type = 'PropaneGas' # OS-Standards is still using the old string
+    end
     if fan_coil_heating
       model.getBuilding.additionalProperties.setFeature('has_hvac_flue', runner.getBoolArgumentValue('has_hvac_flue', user_arguments))
     end
@@ -121,7 +126,7 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
         pump = supply_component.to_PumpVariableSpeed.get
         pump.setName('Central htg pump')
 
-        htg_pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Pump Electric Energy')
+        htg_pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Pump Electricity Energy')
         htg_pump_sensor.setName("#{pump.name.to_s.gsub('|', '_')} s")
         htg_pump_sensor.setKeyName(pump.name.to_s)
 
@@ -150,7 +155,7 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
       pump = supply_component.to_PumpVariableSpeed.get
       pump.setName('Central clg pump')
 
-      clg_pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Pump Electric Energy')
+      clg_pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Pump Electricity Energy')
       clg_pump_sensor.setName("#{pump.name.to_s.gsub('|', '_')} s")
       clg_pump_sensor.setKeyName(pump.name.to_s)
 

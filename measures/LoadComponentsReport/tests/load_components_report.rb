@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'openstudio'
 if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../../lib/resources/measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
   resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../../lib/resources/measures/HPXMLtoOpenStudio/resources'))
@@ -93,7 +95,7 @@ class LoadComponentsReportTest < MiniTest::Test
     FileUtils.cp(sch_path, "#{test_dir(test_name)}")
 
     cli_path = OpenStudio.getOpenStudioCLI
-    cmd = "\"#{cli_path}\" --no-ssl run -w \"#{osw_path}\""
+    cmd = "\"#{cli_path}\" run -w \"#{osw_path}\""
     puts cmd
     system(cmd)
 
@@ -166,6 +168,7 @@ class LoadComponentsReportTest < MiniTest::Test
 
     result.stepValues.each do |step_value|
       next unless (step_value.name == 'heating_demand_error_percent') || (step_value.name == 'cooling_demand_error_percent')
+
       if step_value.valueAsDouble.abs > error_threshold
         assert_operator(step_value.valueAsDouble.abs, :<=, error_threshold, "#{step_value.name} is greater than threshold of #{error_threshold}%")
       end

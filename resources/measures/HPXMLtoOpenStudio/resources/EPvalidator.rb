@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class EnergyPlusValidator
   def self.run_validator(hpxml_doc)
     # A hash of hashes that defines the XML elements used by the EnergyPlus HPXML Use Case.
@@ -714,7 +716,7 @@ class EnergyPlusValidator
     if expected_sizes.size > 0
       return if expected_sizes.include?(actual_size)
 
-      errors << "Expected #{expected_sizes.to_s} element(s) but found #{actual_size.to_s} element(s) for xpath: #{xpath}"
+      errors << "Expected #{expected_sizes} element(s) but found #{actual_size} element(s) for xpath: #{xpath}"
     else
       return if actual_size > 0
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'constants'
 require_relative 'unit_conversions'
 require_relative 'weather'
@@ -76,7 +78,7 @@ class Refrigerator
       end
     end
     if objects_to_remove.size > 0
-      runner.registerInfo("Removed existing refrigerator from space '#{space.name.to_s}'.")
+      runner.registerInfo("Removed existing refrigerator from space '#{space.name}'.")
     end
     objects_to_remove.uniq.each do |object|
       begin
@@ -556,7 +558,7 @@ class ClothesWasher
       end
     end
     if objects_to_remove.size > 0
-      runner.registerInfo("Removed existing clothes washer from space '#{space.name.to_s}'.")
+      runner.registerInfo("Removed existing clothes washer from space '#{space.name}'.")
     end
     objects_to_remove.uniq.each do |object|
       begin
@@ -787,7 +789,7 @@ class ClothesDryer
       end
     end
     if (objects_to_remove.size > 0) && display_remove_msg
-      runner.registerInfo("Removed existing clothes dryer from space '#{space.name.to_s}'.")
+      runner.registerInfo("Removed existing clothes dryer from space '#{space.name}'.")
     end
     objects_to_remove.uniq.each do |object|
       begin
@@ -948,7 +950,7 @@ class CookingRange
       end
     end
     if objects_to_remove.size > 0
-      runner.registerInfo("Removed existing cooking range from space '#{space.name.to_s}'.")
+      runner.registerInfo("Removed existing cooking range from space '#{space.name}'.")
     end
     objects_to_remove.uniq.each do |object|
       begin
@@ -1290,7 +1292,7 @@ class Dishwasher
       end
     end
     if objects_to_remove.size > 0
-      runner.registerInfo("Removed existing dishwasher from space '#{space.name.to_s}'.")
+      runner.registerInfo("Removed existing dishwasher from space '#{space.name}'.")
     end
     objects_to_remove.uniq.each do |object|
       begin

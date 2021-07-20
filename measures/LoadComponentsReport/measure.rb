@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'openstudio'
 if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
   resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/measures/HPXMLtoOpenStudio/resources'))
@@ -151,6 +153,7 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
     sqlFile.availableEnvPeriods.each do |env_pd|
       env_type = sqlFile.environmentType(env_pd)
       next unless env_type.is_initialized
+
       if env_type.get == OpenStudio::EnvironmentType.new('WeatherRunPeriod')
         @ann_env_pd = env_pd
       end

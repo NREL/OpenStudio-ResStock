@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
 unless File.exist? resources_path
   resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
@@ -431,7 +433,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       end
 
       if (sh_gpd > 0) || (s_gpd > 0) || (b_gpd > 0)
-        msgs << "Shower, sinks, and bath fixtures drawing #{sh_gpd.round(1)}, #{s_gpd.round(1)}, and #{b_gpd.round(1)} gal/day respectively have been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name.to_s}'."
+        msgs << "Shower, sinks, and bath fixtures drawing #{sh_gpd.round(1)}, #{s_gpd.round(1)}, and #{b_gpd.round(1)} gal/day respectively have been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name}'."
       end
     end
 
@@ -522,7 +524,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       end
     end
     if objects_to_remove.size > 0
-      runner.registerInfo("Removed existing showers, sinks, and baths from space '#{space.name.to_s}'.")
+      runner.registerInfo("Removed existing showers, sinks, and baths from space '#{space.name}'.")
     end
     objects_to_remove.uniq.each do |object|
       begin

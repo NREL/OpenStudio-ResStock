@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../../../test/minitest_helper'
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
@@ -241,7 +243,7 @@ class ResilienceMetricsReportTest < MiniTest::Test
     FileUtils.cp(sch_path, "#{test_dir(test_name)}")
 
     cli_path = OpenStudio.getOpenStudioCLI
-    cmd = "\"#{cli_path}\" --no-ssl run -w \"#{osw_path}\""
+    cmd = "\"#{cli_path}\" run -w \"#{osw_path}\""
     puts cmd
     system(cmd)
 

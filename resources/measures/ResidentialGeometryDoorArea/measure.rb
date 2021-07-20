@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
@@ -165,7 +167,7 @@ class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
 
       unit_has_door = true
       if min_story_avail_walls.size == 0
-        runner.registerWarning("For #{unit.name.to_s}, could not find appropriate surface for the door. No door was added.")
+        runner.registerWarning("For #{unit.name}, could not find appropriate surface for the door. No door was added.")
         unit_has_door = false
       end
 
@@ -230,7 +232,7 @@ class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
         end
 
         door_sub_surface = OpenStudio::Model::SubSurface.new(door_polygon, model)
-        door_sub_surface.setName("#{unit.name.to_s} - #{min_story_avail_wall.name} - Door")
+        door_sub_surface.setName("#{unit.name} - #{min_story_avail_wall.name} - Door")
         door_sub_surface.setSubSurfaceType('Door')
         door_sub_surface.setSurface(min_story_avail_wall)
         if not construction.nil?
@@ -242,9 +244,9 @@ class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
       end
 
       if door_sub_surface.nil? && unit_has_door
-        runner.registerWarning("For #{unit.name.to_s} could not find appropriate surface for the door. No door was added.")
+        runner.registerWarning("For #{unit.name} could not find appropriate surface for the door. No door was added.")
       elsif not door_sub_surface.nil?
-        runner.registerInfo("For #{unit.name.to_s} added #{door_area.round(1)} ft^2 door.")
+        runner.registerInfo("For #{unit.name} added #{door_area.round(1)} ft^2 door.")
       end
     end
 

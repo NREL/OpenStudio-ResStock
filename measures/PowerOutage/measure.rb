@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://openstudio.nrel.gov/openstudio-measure-writing-guide
 
@@ -159,7 +161,7 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
         (otg_start_date_day..otg_end_date_day).each do |day|
           day_date = OpenStudio::Date::fromDayOfYear(day, assumed_year)
           otg_rule = OpenStudio::Model::ScheduleRule.new(schedule_ruleset)
-          otg_rule.setName("#{schedule_ruleset.name.to_s} Outage Day #{day}")
+          otg_rule.setName("#{schedule_ruleset.name} Outage Day #{day}")
           otg_day = otg_rule.daySchedule
           unmod_sched = schedule_ruleset.getDaySchedules(day_date, day_date)
           unmod_sched = unmod_sched[0]

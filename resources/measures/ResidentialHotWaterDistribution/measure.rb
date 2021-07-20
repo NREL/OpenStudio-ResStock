@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
 unless File.exist? resources_path
   resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
@@ -197,7 +199,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
         end
       end
       if dist_removed
-        runner.registerInfo("Removed existing hot water distribution from space '#{dist_space.name.to_s}'.")
+        runner.registerInfo("Removed existing hot water distribution from space '#{dist_space.name}'.")
       end
 
       # Find which space the showers, sinks, and baths were previously assigned to and get the peak flow rates

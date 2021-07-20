@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'weather'
 require_relative 'constants'
 require_relative 'unit_conversions'
@@ -122,7 +124,7 @@ class Location
         dst.setStartDate(dst_start_date_month, dst_start_date_day)
         dst.setEndDate(dst_end_date_month, dst_end_date_day)
 
-        runner.registerInfo("Set daylight saving time from #{dst.startDate.to_s} to #{dst.endDate.to_s}.")
+        runner.registerInfo("Set daylight saving time from #{dst.startDate} to #{dst.endDate}.")
       rescue
         runner.registerError('Invalid daylight saving date(s) specified.')
         return false

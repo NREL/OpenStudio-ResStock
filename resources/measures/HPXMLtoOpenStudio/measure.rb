@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
@@ -195,7 +197,7 @@ class HPXMLTranslator < OpenStudio::Measure::ModelMeasure
     # Validate input HPXML against schema
     if not schemas_dir.nil?
       XMLHelper.validate(hpxml_doc.to_s, File.join(schemas_dir, 'HPXML.xsd'), runner).each do |error|
-        runner.registerError("#{hpxml_path}: #{error.to_s}")
+        runner.registerError("#{hpxml_path}: #{error}")
         is_valid = false
       end
       runner.registerInfo("#{hpxml_path}: Validated against HPXML schema.")
@@ -340,7 +342,7 @@ class OSModel
     tstep.setNumberOfTimestepsPerHour(1)
 
     shad = model.getShadowCalculation
-    shad.setCalculationFrequency(20)
+    shad.setShadingCalculationUpdateFrequency(20)
     shad.setMaximumFiguresInShadowOverlapCalculations(200)
 
     outsurf = model.getOutsideSurfaceConvectionAlgorithm
@@ -1122,7 +1124,7 @@ class OSModel
       addtl_ffa = floor_area - ceiling_area
       next unless addtl_ffa > 0
 
-      runner.registerWarning("Adding finished basement adiabatic ceiling with #{addtl_ffa.to_s} ft^2.")
+      runner.registerWarning("Adding finished basement adiabatic ceiling with #{addtl_ffa} ft^2.")
 
       finishedfloor_width = Math::sqrt(addtl_ffa)
       finishedfloor_length = addtl_ffa / finishedfloor_width
@@ -1150,14 +1152,14 @@ class OSModel
     nstories_ag = building_construction_values[:number_of_conditioned_floors_above_grade]
 
     if model_ffa > ffa
-      runner.registerError("Sum of conditioned floor surface areas #{model_ffa.to_s} is greater than ConditionedFloorArea specified #{ffa.to_s}.")
+      runner.registerError("Sum of conditioned floor surface areas #{model_ffa} is greater than ConditionedFloorArea specified #{ffa}.")
       return false
     end
 
     addtl_ffa = ffa - model_ffa
     return true unless addtl_ffa > 0
 
-    runner.registerWarning("Adding adiabatic conditioned floor with #{addtl_ffa.to_s} ft^2 to preserve building total conditioned floor area.")
+    runner.registerWarning("Adding adiabatic conditioned floor with #{addtl_ffa} ft^2 to preserve building total conditioned floor area.")
 
     finishedfloor_width = Math::sqrt(addtl_ffa)
     finishedfloor_length = addtl_ffa / finishedfloor_width
@@ -3320,7 +3322,7 @@ class OSModel
     else
       objects.each do |object|
         if vars[object.class.to_s].nil?
-          fail "Unexpected object type #{object.class.to_s}."
+          fail "Unexpected object type #{object.class}."
         end
 
         vars[object.class.to_s].each do |object_var|
@@ -3733,7 +3735,7 @@ class OSModel
     end
 
     if (assembly_r - constr_r).abs > 0.01
-      fail "Construction R-value (#{constr_r}) does not match Assembly R-value (#{assembly_r}) for '#{surface.name.to_s}'."
+      fail "Construction R-value (#{constr_r}) does not match Assembly R-value (#{assembly_r}) for '#{surface.name}'."
     end
   end
 
@@ -4071,14 +4073,14 @@ end
 
 class OutputVars
   def self.SpaceHeatingElectricity
-    return { 'OpenStudio::Model::CoilHeatingDXSingleSpeed' => ['Heating Coil Electric Energy', 'Heating Coil Crankcase Heater Electric Energy', 'Heating Coil Defrost Electric Energy'],
-             'OpenStudio::Model::CoilHeatingDXMultiSpeed' => ['Heating Coil Electric Energy', 'Heating Coil Crankcase Heater Electric Energy', 'Heating Coil Defrost Electric Energy'],
-             'OpenStudio::Model::CoilHeatingElectric' => ['Heating Coil Electric Energy', 'Heating Coil Crankcase Heater Electric Energy', 'Heating Coil Defrost Electric Energy'],
-             'OpenStudio::Model::CoilHeatingWaterToAirHeatPumpEquationFit' => ['Heating Coil Electric Energy', 'Heating Coil Crankcase Heater Electric Energy', 'Heating Coil Defrost Electric Energy'],
+    return { 'OpenStudio::Model::CoilHeatingDXSingleSpeed' => ['Heating Coil Electricity Energy', 'Heating Coil Crankcase Heater Electricity Energy', 'Heating Coil Defrost Electricity Energy'],
+             'OpenStudio::Model::CoilHeatingDXMultiSpeed' => ['Heating Coil Electricity Energy', 'Heating Coil Crankcase Heater Electricity Energy', 'Heating Coil Defrost Electricity Energy'],
+             'OpenStudio::Model::CoilHeatingElectric' => ['Heating Coil Electricity Energy', 'Heating Coil Crankcase Heater Electricity Energy', 'Heating Coil Defrost Electricity Energy'],
+             'OpenStudio::Model::CoilHeatingWaterToAirHeatPumpEquationFit' => ['Heating Coil Electricity Energy', 'Heating Coil Crankcase Heater Electricity Energy', 'Heating Coil Defrost Electricity Energy'],
              'OpenStudio::Model::CoilHeatingGas' => [],
-             'OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric' => ['Baseboard Electric Energy'],
-             'OpenStudio::Model::BoilerHotWater' => ['Boiler Electric Energy'],
-             'OpenStudio::Model::FanOnOff' => ['Fan Electric Energy'] }
+             'OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric' => ['Baseboard Electricity Energy'],
+             'OpenStudio::Model::BoilerHotWater' => ['Boiler Electricity Energy'],
+             'OpenStudio::Model::FanOnOff' => ['Fan Electricity Energy'] }
   end
 
   def self.SpaceHeatingFuel
@@ -4086,9 +4088,9 @@ class OutputVars
              'OpenStudio::Model::CoilHeatingDXMultiSpeed' => [],
              'OpenStudio::Model::CoilHeatingElectric' => [],
              'OpenStudio::Model::CoilHeatingWaterToAirHeatPumpEquationFit' => [],
-             'OpenStudio::Model::CoilHeatingGas' => ['Heating Coil Gas Energy', 'Heating Coil Propane Energy', 'Heating Coil FuelOil#1 Energy'],
-             'OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric' => ['Baseboard Gas Energy', 'Baseboard Propane Energy', 'Baseboard FuelOil#1 Energy'],
-             'OpenStudio::Model::BoilerHotWater' => ['Boiler Gas Energy', 'Boiler Propane Energy', 'Boiler FuelOil#1 Energy'],
+             'OpenStudio::Model::CoilHeatingGas' => ['Heating Coil NaturalGas Energy', 'Heating Coil Propane Energy', 'Heating Coil FuelOilNo1 Energy'],
+             'OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric' => ['Baseboard NaturalGas Energy', 'Baseboard Propane Energy', 'Baseboard FuelOilNo1 Energy'],
+             'OpenStudio::Model::BoilerHotWater' => ['Boiler NaturalGas Energy', 'Boiler Propane Energy', 'Boiler FuelOilNo1 Energy'],
              'OpenStudio::Model::FanOnOff' => [] }
   end
 
@@ -4100,27 +4102,27 @@ class OutputVars
              'OpenStudio::Model::CoilHeatingGas' => ['Heating Coil Heating Energy'],
              'OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric' => ['Baseboard Total Heating Energy'],
              'OpenStudio::Model::BoilerHotWater' => ['Boiler Heating Energy'],
-             'OpenStudio::Model::FanOnOff' => ['Fan Electric Energy'] }
+             'OpenStudio::Model::FanOnOff' => ['Fan Electricity Energy'] }
   end
 
   def self.SpaceCoolingElectricity
-    return { 'OpenStudio::Model::CoilCoolingDXSingleSpeed' => ['Cooling Coil Electric Energy', 'Cooling Coil Crankcase Heater Electric Energy'],
-             'OpenStudio::Model::CoilCoolingDXMultiSpeed' => ['Cooling Coil Electric Energy', 'Cooling Coil Crankcase Heater Electric Energy'],
-             'OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit' => ['Cooling Coil Electric Energy', 'Cooling Coil Crankcase Heater Electric Energy'],
-             'OpenStudio::Model::FanOnOff' => ['Fan Electric Energy'] }
+    return { 'OpenStudio::Model::CoilCoolingDXSingleSpeed' => ['Cooling Coil Electricity Energy', 'Cooling Coil Crankcase Heater Electricity Energy'],
+             'OpenStudio::Model::CoilCoolingDXMultiSpeed' => ['Cooling Coil Electricity Energy', 'Cooling Coil Crankcase Heater Electricity Energy'],
+             'OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit' => ['Cooling Coil Electricity Energy', 'Cooling Coil Crankcase Heater Electricity Energy'],
+             'OpenStudio::Model::FanOnOff' => ['Fan Electricity Energy'] }
   end
 
   def self.SpaceCoolingLoad
     return { 'OpenStudio::Model::CoilCoolingDXSingleSpeed' => ['Cooling Coil Total Cooling Energy'],
              'OpenStudio::Model::CoilCoolingDXMultiSpeed' => ['Cooling Coil Total Cooling Energy'],
              'OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit' => ['Cooling Coil Total Cooling Energy'],
-             'OpenStudio::Model::FanOnOff' => ['Fan Electric Energy'] }
+             'OpenStudio::Model::FanOnOff' => ['Fan Electricity Energy'] }
   end
 
   def self.WaterHeatingElectricity
-    return { 'OpenStudio::Model::WaterHeaterMixed' => ['Water Heater Electric Energy', 'Water Heater Off Cycle Parasitic Electric Energy', 'Water Heater On Cycle Parasitic Electric Energy'],
-             'OpenStudio::Model::WaterHeaterStratified' => ['Water Heater Electric Energy', 'Water Heater Off Cycle Parasitic Electric Energy', 'Water Heater On Cycle Parasitic Electric Energy'],
-             'OpenStudio::Model::CoilWaterHeatingAirToWaterHeatPumpWrapped' => ['Cooling Coil Water Heating Electric Energy'],
+    return { 'OpenStudio::Model::WaterHeaterMixed' => ['Water Heater Electricity Energy', 'Water Heater Off Cycle Parasitic Electricity Energy', 'Water Heater On Cycle Parasitic Electricity Energy'],
+             'OpenStudio::Model::WaterHeaterStratified' => ['Water Heater Electricity Energy', 'Water Heater Off Cycle Parasitic Electricity Energy', 'Water Heater On Cycle Parasitic Electricity Energy'],
+             'OpenStudio::Model::CoilWaterHeatingAirToWaterHeatPumpWrapped' => ['Cooling Coil Water Heating Electricity Energy'],
              'OpenStudio::Model::WaterUseConnections' => [],
              'OpenStudio::Model::ElectricEquipment' => [] }
   end
@@ -4130,12 +4132,12 @@ class OutputVars
              'OpenStudio::Model::WaterHeaterStratified' => [],
              'OpenStudio::Model::CoilWaterHeatingAirToWaterHeatPumpWrapped' => [],
              'OpenStudio::Model::WaterUseConnections' => [],
-             'OpenStudio::Model::ElectricEquipment' => ['Electric Equipment Electric Energy'] }
+             'OpenStudio::Model::ElectricEquipment' => ['Electric Equipment Electricity Energy'] }
   end
 
   def self.WaterHeatingFuel
-    return { 'OpenStudio::Model::WaterHeaterMixed' => ['Water Heater Gas Energy', 'Water Heater Propane Energy', 'Water Heater FuelOil#1 Energy'],
-             'OpenStudio::Model::WaterHeaterStratified' => ['Water Heater Gas Energy', 'Water Heater Propane Energy', 'Water Heater FuelOil#1 Energy'],
+    return { 'OpenStudio::Model::WaterHeaterMixed' => ['Water Heater NaturalGas Energy', 'Water Heater Propane Energy', 'Water Heater FuelOilNo1 Energy'],
+             'OpenStudio::Model::WaterHeaterStratified' => ['Water Heater NaturalGas Energy', 'Water Heater Propane Energy', 'Water Heater FuelOilNo1 Energy'],
              'OpenStudio::Model::CoilWaterHeatingAirToWaterHeatPumpWrapped' => [],
              'OpenStudio::Model::WaterUseConnections' => [],
              'OpenStudio::Model::ElectricEquipment' => [] }

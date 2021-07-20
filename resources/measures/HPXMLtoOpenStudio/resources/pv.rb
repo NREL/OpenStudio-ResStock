@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PV
   def self.apply(model, runner, obj_name, size_w, module_type, system_losses,
                  inverter_eff, tilt_abs, azimuth_abs, array_type)
@@ -10,7 +12,7 @@ class PV
     generator.setAzimuthAngle(azimuth_abs)
     generator.setArrayType(array_type)
 
-    electric_load_center_dist = generator.electricLoadCenterDistribution.get
+    electric_load_center_dist = OpenStudio::Model::ElectricLoadCenterDistribution.new(model)
     electric_load_center_dist.setName("#{obj_name} elec load center dist")
 
     inverter = OpenStudio::Model::ElectricLoadCenterInverterPVWatts.new(model)

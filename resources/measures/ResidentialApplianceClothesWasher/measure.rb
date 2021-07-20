@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
 unless File.exist? resources_path
   resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
@@ -208,11 +210,11 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
       end
 
       if ann_e > 0
-        msgs << "A clothes washer with #{ann_e.round} kWhs annual energy consumption has been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name.to_s}'."
+        msgs << "A clothes washer with #{ann_e.round} kWhs annual energy consumption has been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name}'."
       end
 
       if cd_updated
-        cd_msgs << "The clothes dryer assigned to space '#{space.name.to_s}' has been updated."
+        cd_msgs << "The clothes dryer assigned to space '#{space.name}' has been updated."
       end
 
       tot_ann_e += ann_e

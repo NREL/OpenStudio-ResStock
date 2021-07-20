@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'constants'
 require_relative 'unit_conversions'
 require_relative 'schedules'
@@ -33,7 +35,7 @@ class MiscLoads
       next if Geometry.space_is_unfinished(space)
 
       obj_name = Constants.ObjectNameMiscPlugLoads(unit.name.to_s)
-      space_obj_name = "#{obj_name}|#{space.name.to_s}"
+      space_obj_name = "#{obj_name}|#{space.name}"
 
       # Remove any existing mels
       objects_to_remove = []
@@ -47,7 +49,7 @@ class MiscLoads
         end
       end
       if objects_to_remove.size > 0
-        runner.registerInfo("Removed existing plug loads from space '#{space.name.to_s}'.")
+        runner.registerInfo("Removed existing plug loads from space '#{space.name}'.")
       end
       objects_to_remove.uniq.each do |object|
         begin
@@ -328,7 +330,7 @@ class MiscLoads
       end
     end
     if objects_to_remove.size > 0
-      runner.registerInfo("Removed existing large, uncommon loads from space '#{space.name.to_s}'.")
+      runner.registerInfo("Removed existing large, uncommon loads from space '#{space.name}'.")
     end
     objects_to_remove.uniq.each do |object|
       begin

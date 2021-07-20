@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # insert your copyright here
 
 # see the URL below for information on how to write OpenStudio measures

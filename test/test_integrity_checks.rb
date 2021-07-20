@@ -1,7 +1,7 @@
-require_relative 'minitest_helper'
-require 'minitest/autorun'
-$LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..')
-load 'Rakefile'
+# frozen_string_literal: true
+
+require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
+require_relative 'integrity_checks'
 
 class TestResStockErrors < MiniTest::Test
   def before_setup
@@ -135,8 +135,8 @@ class TestResStockErrors < MiniTest::Test
       integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
-      assert(e.message.include? "ERROR: Required argument 'exterior_depth' not provided in")
-      assert(e.message.include? "test_options_lookup.tsv for measure 'ResidentialConstructionsSlab'.")
+      assert(e.message.include? "ERROR: Required argument 'ext_surf_cat' not provided in")
+      assert(e.message.include? "test_options_lookup.tsv for measure 'SetSpaceInfiltrationPerExteriorArea'.")
     else
       flunk "Should have caused an error but didn't."
     end
@@ -149,7 +149,7 @@ class TestResStockErrors < MiniTest::Test
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
       assert(e.message.include? "ERROR: Extra argument 'extra_arg' specified in")
-      assert(e.message.include? "test_options_lookup.tsv for measure 'ResidentialConstructionsUnfinishedBasement'.")
+      assert(e.message.include? "test_options_lookup.tsv for measure 'SetSpaceInfiltrationPerExteriorArea'.")
     else
       flunk "Should have caused an error but didn't."
     end
@@ -161,7 +161,7 @@ class TestResStockErrors < MiniTest::Test
       integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
-      assert_equal("ERROR: Value of '1.5' for argument 'wall_filled_cavity' and measure 'ResidentialConstructionsFinishedBasement' must be 'true' or 'false'.", e.message)
+      assert_equal("ERROR: Value of 'foo' for argument 'ext_surf_cat' and measure 'SetSpaceInfiltrationPerExteriorArea' must be one of: [\"ExteriorArea\", \"ExteriorWallArea\"].", e.message)
     else
       flunk "Should have caused an error but didn't."
     end

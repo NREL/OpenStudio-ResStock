@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Performs sampling technique and generates CSV file with parameter options for each building.
 
 # The file has to follow general Ruby conventions.
@@ -157,7 +159,7 @@ class RunSampling
     rownum = tsvfile.rows_keys_s[key_s_downcase]
 
     if rownum.nil?
-      register_error("Could not find row in #{tsvfile.filename} with dependency values: #{dep_hash.to_s}.", nil)
+      register_error("Could not find row in #{tsvfile.filename} with dependency values: #{dep_hash}.", nil)
     end
 
     return tsvfile.rows[rownum]
@@ -165,7 +167,7 @@ class RunSampling
 
   def binary_search(arr, value)
     # Implementation of binary search
-    if arr.nil? || (arr.size == 0)
+    if arr.nil? || arr.size == 0
       return 0
     end
 

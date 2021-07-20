@@ -1,18 +1,20 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
 require 'csv'
 require 'openstudio'
-if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/measures/HPXMLtoOpenStudio/resources'))
-elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock unit tests locally
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/measures/HPXMLtoOpenStudio/resources'))
+if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock unit tests locally
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
 elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
   resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
 else
   resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
 end
-require File.join(resources_path, 'weather')
+require File.join(resources_path, 'meta_measure')
 
 # in addition to the above requires, this measure is expected to run in an
 # environment with resstock/resources/buildstock.rb loaded
@@ -38,35 +40,81 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
-    building_id = OpenStudio::Ruleset::OSArgument.makeIntegerArgument('building_id', true)
-    building_id.setDisplayName('Building ID')
-    building_id.setDescription('The building number (between 1 and the number of samples).')
-    args << building_id
+    arg = OpenStudio::Ruleset::OSArgument.makeIntegerArgument('building_id', true)
+    arg.setDisplayName('Building Unit ID')
+    arg.setDescription('The building unit number (between 1 and the number of samples).')
+    args << arg
 
-    workflow_json = OpenStudio::Ruleset::OSArgument.makeStringArgument('workflow_json', false)
-    workflow_json.setDisplayName('Workflow JSON')
-    workflow_json.setDescription('The name of the JSON file (in the resources dir) that dictates the order in which measures are to be run. If not provided, the order specified in resources/options_lookup.tsv will be used.')
-    args << workflow_json
+    arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('workflow_json', false)
+    arg.setDisplayName('Workflow JSON')
+    arg.setDescription('The name of the JSON file (in the resources dir) that dictates the order in which measures are to be run. If not provided, the order specified in resources/options_lookup.tsv will be used.')
+    args << arg
 
-    number_of_buildings_represented = OpenStudio::Ruleset::OSArgument.makeIntegerArgument('number_of_buildings_represented', false)
-    number_of_buildings_represented.setDisplayName('Number of Buildings Represented')
-    number_of_buildings_represented.setDescription('The total number of buildings represented by the existing building models.')
-    args << number_of_buildings_represented
+    arg = OpenStudio::Ruleset::OSArgument.makeIntegerArgument('number_of_buildings_represented', false)
+    arg.setDisplayName('Number of Buildings Represented')
+    arg.setDescription('The total number of buildings represented by the existing building models.')
+    args << arg
 
-    sample_weight = OpenStudio::Ruleset::OSArgument.makeDoubleArgument('sample_weight', false)
-    sample_weight.setDisplayName('Sample Weight of Simulation')
-    sample_weight.setDescription('Number of buildings this simulation represents.')
-    args << sample_weight
+    arg = OpenStudio::Ruleset::OSArgument.makeDoubleArgument('sample_weight', false)
+    arg.setDisplayName('Sample Weight of Simulation')
+    arg.setDescription('Number of buildings this simulation represents.')
+    args << arg
 
-    downselect_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument('downselect_logic', false)
-    downselect_logic.setDisplayName('Downselect Logic')
-    downselect_logic.setDescription("Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
-    args << downselect_logic
+    arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('downselect_logic', false)
+    arg.setDisplayName('Downselect Logic')
+    arg.setDescription("Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
+    args << arg
 
-    measures_to_ignore = OpenStudio::Ruleset::OSArgument.makeStringArgument('measures_to_ignore', false)
-    measures_to_ignore.setDisplayName('Measures to Ignore')
-    measures_to_ignore.setDescription("Measures to exclude from the OpenStudio Workflow specified by listing one or more measure directories separated by '|'. Core ResStock measures cannot be ignored (this measure will fail). INTENDED FOR ADVANCED USERS/WORKFLOW DEVELOPERS.")
-    args << measures_to_ignore
+    arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('measures_to_ignore', false)
+    arg.setDisplayName('Measures to Ignore')
+    arg.setDescription("Measures to exclude from the OpenStudio Workflow specified by listing one or more measure directories separated by '|'. Core ResStock measures cannot be ignored (this measure will fail). INTENDED FOR ADVANCED USERS/WORKFLOW DEVELOPERS.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_timestep', false)
+    arg.setDisplayName('Simulation Control: Timestep')
+    arg.setUnits('min')
+    arg.setDescription('Value must be a divisor of 60.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_run_period_begin_month', false)
+    arg.setDisplayName('Simulation Control: Run Period Begin Month')
+    arg.setUnits('month')
+    arg.setDescription('This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the annual run period desired.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_run_period_begin_day_of_month', false)
+    arg.setDisplayName('Simulation Control: Run Period Begin Day of Month')
+    arg.setUnits('day')
+    arg.setDescription('This numeric field should contain the starting day of the starting month (must be valid for month) for the annual run period desired.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_run_period_end_month', false)
+    arg.setDisplayName('Simulation Control: Run Period End Month')
+    arg.setUnits('month')
+    arg.setDescription('This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the annual run period desired.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_run_period_end_day_of_month', false)
+    arg.setDisplayName('Simulation Control: Run Period End Day of Month')
+    arg.setUnits('day')
+    arg.setDescription('This numeric field should contain the ending day of the ending month (must be valid for month) for the annual run period desired.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_run_period_calendar_year', false)
+    arg.setDisplayName('Simulation Control: Run Period Calendar Year')
+    arg.setUnits('year')
+    arg.setDescription('This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('debug', false)
+    arg.setDisplayName('Debug Mode?')
+    arg.setDescription('If true: 1) Writes in.osm file, 2) Generates additional log output, and 3) Creates all EnergyPlus output files.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('add_component_loads', false)
+    arg.setDisplayName('Add annual component loads output')
+    arg.setDescription('If true, output the annual component loads')
+    args << arg
 
     return args
   end
@@ -80,25 +128,19 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    building_id = runner.getIntegerArgumentValue('building_id', user_arguments)
-    workflow_json = runner.getOptionalStringArgumentValue('workflow_json', user_arguments)
-    number_of_buildings_represented = runner.getOptionalIntegerArgumentValue('number_of_buildings_represented', user_arguments)
-    sample_weight = runner.getOptionalDoubleArgumentValue('sample_weight', user_arguments)
-    downselect_logic = runner.getOptionalStringArgumentValue('downselect_logic', user_arguments)
-    measures_to_ignore = runner.getOptionalStringArgumentValue('measures_to_ignore', user_arguments)
-
-    # Save the building id
-    model.getBuilding.additionalProperties.setFeature('Building ID', building_id)
+    # assign the user inputs to variables
+    args = get_argument_values(runner, arguments(model), user_arguments)
 
     # Get file/dir paths
-    resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..', 'lib', 'resources')) # Should have been uploaded per 'Additional Analysis Files' in PAT
-    characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..', 'lib', 'housing_characteristics')) # Should have been uploaded per 'Additional Analysis Files' in PAT
+    resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources'))
+    characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/housing_characteristics'))
     buildstock_file = File.join(resources_dir, 'buildstock.rb')
-    measures_dir = File.join(resources_dir, 'measures')
+    measures_dir = File.join(File.dirname(__FILE__), '../../measures')
+    hpxml_measures_dir = File.join(File.dirname(__FILE__), '../../resources/hpxml-measures')
     lookup_file = File.join(resources_dir, 'options_lookup.tsv')
-    buildstock_csv = File.absolute_path(File.join(characteristics_dir, 'buildstock.csv')) # Should have been generated by the Worker Initialization Script (run_sampling.rb) or provided by the project
-    if workflow_json.is_initialized
-      workflow_json = File.join(resources_dir, workflow_json.get)
+    buildstock_csv = File.absolute_path(File.join(characteristics_dir, 'buildstock.csv'))
+    if args['workflow_json'].is_initialized
+      workflow_json = File.join(resources_dir, args['workflow_json'].get)
     else
       workflow_json = nil
     end
@@ -107,7 +149,10 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
 
     # Check file/dir paths exist
-    check_dir_exists(measures_dir, runner)
+    [measures_dir, hpxml_measures_dir].each do |dir|
+      check_dir_exists(dir, runner)
+    end
+    check_dir_exists(characteristics_dir, runner)
     check_file_exists(lookup_file, runner)
     check_file_exists(buildstock_csv, runner)
 
@@ -115,7 +160,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     buildstock_csv_data = CSV.open(buildstock_csv, headers: true).map(&:to_hash)
 
     # Retrieve all data associated with sample number
-    bldg_data = get_data_for_sample(buildstock_csv_data, building_id, runner)
+    bldg_data = get_data_for_sample(buildstock_csv_data, args['building_id'], runner)
 
     # Retrieve order of parameters to run
     parameters_ordered = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir)
@@ -129,9 +174,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # Determine whether this building_id has been downselected based on the
     # {parameter_name: option_name} pairs
-    if downselect_logic.is_initialized
+    if args['downselect_logic'].is_initialized
 
-      downselect_logic = downselect_logic.get
+      downselect_logic = args['downselect_logic'].get
       downselect_logic = downselect_logic.strip
       downselected = evaluate_logic(downselect_logic, runner, past_results = false)
 
@@ -160,49 +205,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    # FIXME: Hack to run the correct ResStock geometry measure
-    if ['Single-Family Detached', 'Mobile Home'].include? bldg_data['Geometry Building Type RECS']
-      measures.delete('ResidentialGeometryCreateSingleFamilyAttached')
-      measures.delete('ResidentialGeometryCreateMultifamily')
-    elsif ['Single-Family Attached'].include? bldg_data['Geometry Building Type RECS']
-      measures.delete('ResidentialGeometryCreateSingleFamilyDetached')
-      measures.delete('ResidentialGeometryCreateMultifamily')
-    elsif ['Multi-Family with 2 - 4 Units', 'Multi-Family with 5+ Units'].include? bldg_data['Geometry Building Type RECS']
-      measures.delete('ResidentialGeometryCreateSingleFamilyDetached')
-      measures.delete('ResidentialGeometryCreateSingleFamilyAttached')
-    end
-
-    # FIXME: Hack to run the correct ResStock foundation construction measure
-    if ['Ambient'].include? bldg_data['Geometry Foundation Type']
-      measures.delete('ResidentialConstructionsSlab')
-      measures.delete('ResidentialConstructionsCrawlspace')
-      measures.delete('ResidentialConstructionsUnfinishedBasement')
-      measures.delete('ResidentialConstructionsFinishedBasement')
-    elsif ['Unheated Basement'].include? bldg_data['Geometry Foundation Type']
-      measures.delete('ResidentialConstructionsPierBeam')
-      measures.delete('ResidentialConstructionsSlab')
-      measures.delete('ResidentialConstructionsCrawlspace')
-      measures.delete('ResidentialConstructionsFinishedBasement')
-    elsif ['Heated Basement'].include? bldg_data['Geometry Foundation Type']
-      measures.delete('ResidentialConstructionsPierBeam')
-      measures.delete('ResidentialConstructionsSlab')
-      measures.delete('ResidentialConstructionsCrawlspace')
-      measures.delete('ResidentialConstructionsUnfinishedBasement')
-    elsif ['Vented Crawlspace', 'Unvented Crawlspace'].include? bldg_data['Geometry Foundation Type']
-      measures.delete('ResidentialConstructionsPierBeam')
-      measures.delete('ResidentialConstructionsSlab')
-      measures.delete('ResidentialConstructionsUnfinishedBasement')
-      measures.delete('ResidentialConstructionsFinishedBasement')
-    elsif ['Slab'].include? bldg_data['Geometry Foundation Type']
-      measures.delete('ResidentialConstructionsPierBeam')
-      measures.delete('ResidentialConstructionsCrawlspace')
-      measures.delete('ResidentialConstructionsUnfinishedBasement')
-      measures.delete('ResidentialConstructionsFinishedBasement')
-    end
-
     # Remove any measures_to_ignore from the list of measures to run
-    if measures_to_ignore.is_initialized
-      measures_to_ignore = measures_to_ignore.get
+    if args['measures_to_ignore'].is_initialized
+      measures_to_ignore = args['measures_to_ignore'].get
       # core ResStock measures are those specified in the default workflow json
       # those should not be ignored ...
       core_measures = get_measures(File.join(resources_dir, 'measure-info.json'))
@@ -218,31 +223,68 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    if not apply_measures(measures_dir, measures, runner, model, workflow_json, 'measures.osw', true)
+    # Get the absolute paths relative to this meta measure in the run directory
+    new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+    if not apply_child_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, workflow_json, nil, true, { 'BuildExistingModel' => runner })
+      return false
+    end
+
+    measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => File.expand_path('../existing.xml') }]
+
+    new_runner.result.stepValues.each do |step_value|
+      value = get_value_from_workflow_step_value(step_value)
+      next if value == ''
+
+      measures['BuildResidentialHPXML'][0][step_value.name] = value
+    end
+
+    measures['HPXMLtoOpenStudio'] = [{}]
+    measures['HPXMLtoOpenStudio'][0]['hpxml_path'] = File.expand_path('../existing.xml')
+    measures['HPXMLtoOpenStudio'][0]['output_dir'] = File.expand_path('..')
+    measures['HPXMLtoOpenStudio'][0]['debug'] = args['debug'] if args['debug'].is_initialized
+    measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = args['add_component_loads'] if args['add_component_loads'].is_initialized
+
+    # Get software program used and version
+    measures['BuildResidentialHPXML'][0]['software_program_used'] = software_program_used
+    measures['BuildResidentialHPXML'][0]['software_program_version'] = software_program_version
+
+    # Get simulation control timestep and run period
+    measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = args['simulation_control_timestep'].get if args['simulation_control_timestep'].is_initialized
+    measures['BuildResidentialHPXML'][0]['simulation_control_run_period_begin_month'] = args['simulation_control_run_period_begin_month'].get if args['simulation_control_run_period_begin_month'].is_initialized
+    measures['BuildResidentialHPXML'][0]['simulation_control_run_period_begin_day_of_month'] = args['simulation_control_run_period_begin_day_of_month'].get if args['simulation_control_run_period_begin_day_of_month'].is_initialized
+    measures['BuildResidentialHPXML'][0]['simulation_control_run_period_end_month'] = args['simulation_control_run_period_end_month'].get if args['simulation_control_run_period_end_month'].is_initialized
+    measures['BuildResidentialHPXML'][0]['simulation_control_run_period_end_day_of_month'] = args['simulation_control_run_period_end_day_of_month'].get if args['simulation_control_run_period_end_day_of_month'].is_initialized
+    measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = args['simulation_control_run_period_calendar_year'].get if args['simulation_control_run_period_calendar_year'].is_initialized
+
+    # Get the schedules random seed
+    measures['BuildResidentialHPXML'][0]['schedules_random_seed'] = args['building_id']
+
+    if not apply_child_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, workflow_json, 'existing.osw', true, { 'BuildExistingModel' => runner })
+      new_runner.result.errors.each do |error|
+        runner.registerError(error.logMessage)
+      end
       return false
     end
 
     # Report some additional location and model characteristics
     weather = WeatherProcess.new(model, runner)
-    if !weather.error?
-      register_value(runner, 'location_city', weather.header.City)
-      register_value(runner, 'location_latitude', "#{weather.header.Latitude}")
-      register_value(runner, 'location_longitude', "#{weather.header.Longitude}")
-      climate_zone_ba = Location.get_climate_zone_ba(weather.header.Station)
-      climate_zone_iecc = Location.get_climate_zone_iecc(weather.header.Station)
-      unless climate_zone_ba.nil?
-        register_value(runner, 'climate_zone_ba', climate_zone_ba)
-      end
-      unless climate_zone_iecc.nil?
-        register_value(runner, 'climate_zone_iecc', climate_zone_iecc)
-      end
-      if climate_zone_ba.nil? && climate_zone_iecc.nil?
-        runner.registerInfo('The weather station WMO has not been set appropriately in the EPW weather file header.')
-      end
+    register_value(runner, 'location_city', weather.header.City)
+    register_value(runner, 'location_latitude', "#{weather.header.Latitude}")
+    register_value(runner, 'location_longitude', "#{weather.header.Longitude}")
+    climate_zone_ba = Location.get_climate_zone_ba(weather.header.Station)
+    climate_zone_iecc = Location.get_climate_zone_iecc(weather.header.Station)
+    unless climate_zone_ba.nil?
+      register_value(runner, 'climate_zone_ba', climate_zone_ba)
+    end
+    unless climate_zone_iecc.nil?
+      register_value(runner, 'climate_zone_iecc', climate_zone_iecc)
+    end
+    if climate_zone_ba.nil? && climate_zone_iecc.nil?
+      runner.registerInfo('The weather station WMO has not been set appropriately in the EPW weather file header.')
     end
 
     # Determine weight
-    if number_of_buildings_represented.is_initialized
+    if args['number_of_buildings_represented'].is_initialized
       total_samples = nil
       runner.analysis[:analysis][:problem][:workflow].each do |wf|
         next if wf[:name] != 'build_existing_model'
@@ -257,12 +299,12 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         runner.registerError('Could not retrieve value for number_of_buildings_represented.')
         return false
       end
-      weight = number_of_buildings_represented.get / total_samples
+      weight = args['number_of_buildings_represented'].get / total_samples
       register_value(runner, 'weight', weight.to_s)
     end
 
-    if sample_weight.is_initialized
-      register_value(runner, 'weight', sample_weight.get.to_s)
+    if args['sample_weight'].is_initialized
+      register_value(runner, 'weight', args['sample_weight'].get.to_s)
     end
 
     return true

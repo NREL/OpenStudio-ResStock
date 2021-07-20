@@ -11,7 +11,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:2.9.0
+      image: docker://nrel/openstudio:3.2.1
     steps:
       - name: Show environment
         run: |
@@ -26,29 +26,25 @@ jobs:
         run: |
           rm -f Gemfile.lock && bundle install
 
-      - name: Update all measures
+      - name: Run integrity checks for all projects
         run: |
-          rake update_measures
+          rake unit_tests:project_integrity_checks
 
-      - name: Regenerate test osms
+      - name: Run all integrity check unit tests
         run: |
-          rake test:regenerate_osms
+          rake unit_tests:integrity_check_tests
 
-      - name: Run all unit tests
+      - name: Run all measure tests
         run: |
-          rake test:unit_tests
+          rake unit_tests:measure_tests
 
-      - name: Run all project tests
+      - name: Run regression tests for all example osws
         run: |
-          rake test:project_tests
+          rake regression:workflow_tests
 
-      - name: Run all regression tests
+      - name: Run integration tests for sampled datapoints
         run: |
-          rake test:regression_tests
-
-      - name: Run all integration tests
-        run: |
-          rake test:integration_tests
+          rake integration:workflow_tests
 
       - name: Upload feature samples
         uses: actions/upload-artifact@v2
@@ -65,14 +61,8 @@ jobs:
       - name: Upload integration results
         uses: actions/upload-artifact@v2
         with:
-          path: test/test_samples_osw/results
+          path: test/test_samples_osw/baseline/results
           name: results
-
-      - name: Upload schedules
-        uses: actions/upload-artifact@v2
-        with:
-          path: resources/measures/ResidentialScheduleGenerator/tests/output/test_sweep_building_ids_and_num_occupants
-          name: schedules
 
   compare-results:
     if: github.event_name == 'pull_request'
@@ -121,15 +111,26 @@ jobs:
 
       - name: Compare samples and results
         run: |
-          cp -r base/buildstock*.csv resources/base_buildstock.csv
-          cp -r samples/buildstock*.csv resources/buildstock.csv
-          pip install pandas
-          python test/compare.py
-          
-          cp -r base/results*.csv test/test_samples_osw/base
+          cp -r base/*.csv test/test_samples_osw/base
           mkdir test/test_samples_osw/results
+          cp -r samples/buildstock*.csv test/test_samples_osw/results
           cp -r results/results* test/test_samples_osw/results
-          ruby test/compare.rb
+          
+          pip install numpy
+          pip install pandas
+          pip install plotly
+          pip install kaleido
+          
+          python test/compare.py -a samples
+          
+          python test/compare.py -m feature
+          
+          python test/compare.py -a results -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map
+          python test/compare.py -a results -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map -af sum -ac build_existing_model.geometry_building_type_recs -x results_output_building_type_sum.csv
+          
+          python test/compare.py -a visualize -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map -dc build_existing_model.geometry_building_type_recs -x results_output_building_type.html
+          python test/compare.py -a visualize -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map -dc build_existing_model.county -x results_output_county.html
+          python test/compare.py -a visualize -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map -dc build_existing_model.geometry_building_type_recs -ac build_existing_model.county -af sum -x results_output_county_sum.html
 
       - name: Upload comparisons
         uses: actions/upload-artifact@v2
@@ -179,25 +180,9 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     needs: build
-    strategy:
-      matrix:
-        python-version: [3.8.4]
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+      - uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Build documentation
-        run: |
-          cd docs/read_the_docs
-          pip install -r requirements.txt
-          make html
-
-      - name: Upload docs
-        uses: actions/upload-artifact@v2
-        with:
-          path: docs/read_the_docs/build
-          name: readthedocs
+          python-version: '3.8.x'

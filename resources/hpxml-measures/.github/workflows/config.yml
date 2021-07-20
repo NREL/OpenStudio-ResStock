@@ -1,0 +1,115 @@
+name: ci
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    types: [ synchronize, opened ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: docker://nrel/openstudio:3.2.1
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Install gems
+        run: |
+          rm -f Gemfile.lock && bundle install
+
+      - name: Run tests
+        run: |
+          bundle exec rake test_all
+
+      - name: Store results
+        uses: actions/upload-artifact@v2
+        with:
+          path: workflow/tests/results
+          name: results
+
+      - name: Store code coverage
+        uses: actions/upload-artifact@v2
+        with:
+          path: coverage
+          name: coverage
+
+  compare-results:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+
+      - name: Store base results
+        uses: actions/upload-artifact@v2
+        with:
+          path: workflow/tests/base_results
+          name: base_results
+
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Download base results
+        uses: actions/download-artifact@v2
+        with:
+          path: |
+            base_results
+          name: base_results
+
+      - name: Download feature results
+        uses: actions/download-artifact@v2
+        with:
+          path: |
+            results
+          name: results
+
+      - name: Compare results
+        run: |
+          cp -r base_results/results*.csv workflow/tests/base_results
+          mkdir workflow/tests/results
+          cp -r results/results* workflow/tests/results
+          ruby workflow/tests/compare.rb
+
+      - name: Store comparisons
+        uses: actions/upload-artifact@v2
+        with:
+          path: workflow/tests/comparisons
+          name: comparisons
+
+  update-results:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Download feature results
+        uses: actions/download-artifact@v2
+        with:
+          path: |
+            results
+          name: results
+
+      - name: Commit latest results
+        shell: bash        
+        run: |
+          branch_name="${{ github.head_ref }}"
+          git pull origin $branch_name
+          cp -r results/results* workflow/tests/base_results
+          git add workflow/tests/base_results
+          git status
+          if [[ $(git diff --cached --exit-code) ]]; then
+            git config --global user.email "github-action@users.noreply.github.com"
+            git config --global user.name "GitHub Action"
+            git commit -m "Latest results."
+            echo "Pushing to branch: $branch_name"
+            git push -u origin $branch_name
+          fi

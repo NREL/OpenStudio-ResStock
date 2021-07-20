@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
+$VERBOSE = nil # Prevents ruby warnings, see https://github.com/NREL/OpenStudio/issues/4301
+
 require 'csv'
 require "#{File.dirname(__FILE__)}/meta_measure"
 
@@ -33,7 +37,7 @@ class TsvFile
     end
 
     if full_header.nil?
-      register_error("Could not find header row in #{@filename.to_s}.", @runner)
+      register_error("Could not find header row in #{@filename}.", @runner)
     end
 
     # Strip out everything but options and dependencies from header
@@ -54,7 +58,7 @@ class TsvFile
       end
     end
     if option_cols.size == 0
-      register_error("No options found in #{@filename.to_s}.", @runner)
+      register_error("No options found in #{@filename}.", @runner)
     end
 
     # Get all dependencies and their listed options
@@ -87,9 +91,9 @@ class TsvFile
 
       if not rows_keys_s[key_s_downcase].nil?
         if key_s.size > 0
-          register_error("Multiple rows found in #{@filename.to_s} with dependencies: #{key_s.to_s}.", @runner)
+          register_error("Multiple rows found in #{@filename} with dependencies: #{key_s}.", @runner)
         else
-          register_error("Multiple rows found in #{@filename.to_s}.", @runner)
+          register_error("Multiple rows found in #{@filename}.", @runner)
         end
       end
 
@@ -114,9 +118,9 @@ class TsvFile
     rownum = @rows_keys_s[key_s_downcase]
     if rownum.nil?
       if key_s.size > 0
-        register_error("Could not determine appropriate option in #{@filename.to_s} for sample value #{sample_value.to_s} with dependencies: #{key_s.to_s}.", @runner)
+        register_error("Could not determine appropriate option in #{@filename} for sample value #{sample_value} with dependencies: #{key_s}.", @runner)
       else
-        register_error("Could not determine appropriate option in #{@filename.to_s} for sample value #{sample_value.to_s}.", @runner)
+        register_error("Could not determine appropriate option in #{@filename} for sample value #{sample_value}.", @runner)
       end
     end
 
@@ -125,20 +129,20 @@ class TsvFile
     row = @rows[rownum]
     @option_cols.each do |option_name, option_col|
       if not row[option_col].is_number?
-        register_error("Field '#{row[option_col].to_s}' in #{@filename.to_s} must be numeric.", @runner)
+        register_error("Field '#{row[option_col]}' in #{@filename} must be numeric.", @runner)
       end
       rowvals[option_name] = row[option_col].to_f
 
       # Check positivity of the probability values
       if rowvals[option_name] < 0
-        register_error("Probability value in #{@filename.to_s} is less than zero.", @runner)
+        register_error("Probability value in #{@filename} is less than zero.", @runner)
       end
     end
 
     # Sum of values within 2% of 100%?
     sum_rowvals = rowvals.values.reduce(:+)
     if (sum_rowvals < 0.98) || (sum_rowvals > 1.02)
-      register_error("Values in #{@filename.to_s} incorrectly sum to #{sum_rowvals.to_s}.", @runner)
+      register_error("Values in #{@filename} incorrectly sum to #{sum_rowvals}.", @runner)
     end
 
     # If values don't exactly sum to 1, normalize them
@@ -322,14 +326,14 @@ def get_measure_args_from_option_names(lookup_csv_data, option_names, parameter_
   end
   option_names.each do |option_name|
     if not found_options[option_name]
-      register_error("Could not find parameter '#{parameter_name.to_s}' and option '#{option_name.to_s}' in #{lookup_file.to_s}.", runner)
+      register_error("Could not find parameter '#{parameter_name}' and option '#{option_name}' in #{lookup_file}.", runner)
     end
   end
   return options_measure_args
 end
 
 def print_option_assignment(parameter_name, option_name, runner)
-  runner.registerInfo("Assigning option '#{option_name.to_s}' for parameter '#{parameter_name.to_s}'.")
+  runner.registerInfo("Assigning option '#{option_name}' for parameter '#{parameter_name}'.")
 end
 
 def register_value(runner, parameter_name, option_name)
@@ -396,7 +400,7 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
   result = eval(ruby_eval_str)
   runner.registerInfo("Evaluating logic: #{option_apply_logic}.")
   runner.registerInfo("Converted to Ruby: #{ruby_eval_str}.")
-  runner.registerInfo("Ruby Evaluation: #{result.to_s}.")
+  runner.registerInfo("Ruby Evaluation: #{result}.")
   if not [true, false].include?(result)
     runner.registerError("Logic was not successfully evaluated: #{ruby_eval_str}")
     return
@@ -411,9 +415,28 @@ def get_data_for_sample(buildstock_csv_data, building_id, runner)
     return sample
   end
   # If we got this far, couldn't find the sample #
-  msg = "Could not find row for #{building_id.to_s} in #{File.basename(buildstock_csv).to_s}."
+  msg = "Could not find row for #{building_id} in #{File.basename(buildstock_csv)}."
   runner.registerError(msg)
   fail msg
+end
+
+def version
+  data = {}
+  File.open("#{File.dirname(__FILE__)}/__version__.py", 'r') do |file|
+    file.each_line do |line|
+      key, value = line.split(' = ')
+      data[key] = value.chomp.gsub("'", '')
+    end
+  end
+  return data
+end
+
+def software_program_used
+  return version['__title__']
+end
+
+def software_program_version
+  return version['__version__']
 end
 
 class RunOSWs
@@ -440,57 +463,37 @@ class RunOSWs
   def self.run_and_check(in_osw, parent_dir)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
-    command = "\"#{cli_path}\" run -w #{in_osw}"
-
+    command = "cd #{parent_dir} && \"#{cli_path}\" run -w #{in_osw}"
     system(command)
-    out_osw = File.join(parent_dir, 'out.osw')
+    finished_job = File.join(parent_dir, 'run/finished.job')
 
-    data_point_out = File.join(parent_dir, 'run/data_point_out.json')
     result_characteristics = {}
     result_output = {}
-    rows = JSON.parse(File.read(File.expand_path(data_point_out)))
-    if rows.keys.include? 'BuildExistingModel'
-      result_characteristics = get_build_existing_model(result_characteristics, rows)
-    end
-    if rows.keys.include? 'SimulationOutputReport'
-      result_output = get_simulation_output_report(result_output, rows)
-    end
-    if rows.keys.include? 'LoadComponentsReport'
-      result_output = get_load_components_report(result_output, rows)
-    end
+    rows = {}
 
-    return out_osw, result_characteristics, result_output
-  end
-
-  def self.get_build_existing_model(result, rows)
-    result = result.merge(rows['BuildExistingModel'])
-    result.delete('applicable')
-    return result
-  end
-
-  def self.get_simulation_output_report(result, rows)
-    rows['SimulationOutputReport'].each do |k, v|
-      begin
-        rows['SimulationOutputReport'][k] = v.round(1)
-      rescue NoMethodError
+    results = File.join(parent_dir, 'run/results.json')
+    if File.exist?(File.expand_path(results))
+      old_rows = JSON.parse(File.read(File.expand_path(results)))
+      old_rows.each do |measure, values|
+        rows[measure] = {}
+        values.each do |arg, val|
+          rows[measure]["#{OpenStudio::toUnderscoreCase(measure)}.#{arg}"] = val
+        end
       end
     end
-    result = result.merge(rows['SimulationOutputReport'])
-    result.delete('applicable')
-    result.delete('upgrade_name')
-    result.delete('upgrade_cost_usd')
-    return result
+
+    result_characteristics = get_measure_results(rows, result_characteristics, 'BuildExistingModel')
+    result_output = get_measure_results(rows, result_output, 'ApplyUpgrade')
+    result_output = get_measure_results(rows, result_output, 'SimulationOutputReport')
+    result_output = get_measure_results(rows, result_output, 'UpgradeCosts')
+    return finished_job, result_characteristics, result_output
   end
 
-  def self.get_load_components_report(result, rows)
-    rows['LoadComponentsReport'].each do |k, v|
-      begin
-        rows['LoadComponentsReport'][k] = v.round(1)
-      rescue NoMethodError
-      end
+  def self.get_measure_results(rows, result, measure)
+    if rows.keys.include?(measure)
+      result = result.merge(rows[measure])
+      result.delete('applicable')
     end
-    result = result.merge(rows['LoadComponentsReport'])
-    result.delete('applicable')
     return result
   end
 
@@ -520,6 +523,9 @@ class RunOSWs
         csv << csv_row
       end
     end
+
+    puts "\nWrote: #{csv_out}\n"
+    return csv_out
   end
 
   def self._rm_path(path)

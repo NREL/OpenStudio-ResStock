@@ -8,35 +8,41 @@ weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 450000
+    n_datapoints: 4
 
 workflow_generator:
-  type: residential_default
+  type: residential_hpxml
   args:
-    residential_simulation_controls:
-      timesteps_per_hr: 4
-      begin_month: 1
-      begin_day_of_month: 1
-      end_month: 12
-      end_day_of_month: 31
-      calendar_year: 2007
+    build_existing_model:
+      simulation_control_timestep: 15
+      simulation_control_run_period_begin_month: 1
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 12
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2007
+      debug: false
 
-    simulation_output:
-      include_enduse_subcategories: true
-
-    timeseries_csv_export:
-      reporting_frequency: Timestep
-      include_enduse_subcategories: true
+    simulation_output_report:
+      timeseries_frequency: timestep
+      include_timeseries_fuel_consumptions: true
+      include_timeseries_end_use_consumptions: true
+      include_timeseries_hot_water_uses: false
+      include_timeseries_total_loads: false
+      include_timeseries_component_loads: false
+      include_timeseries_unmet_loads: false
+      include_timeseries_zone_temperatures: false
+      include_timeseries_airflows: false
+      include_timeseries_weather: false
 
 baseline:
   n_buildings_represented: 110000000
 
 eagle:
-  n_jobs: 3
-  minutes_per_sim: 30
+  n_jobs: 2
+  minutes_per_sim: 1
   account: <account you are authorized to use>
-  postprocessing:
-    time: 20
-    n_workers: 1
   sampling:
-    time: 5
+    time: 10
+  postprocessing:
+    time: 10
+    n_workers: 1

@@ -1,340 +1,36 @@
 [
   {
-    "group_name": "1. Simulation Controls",
+    "group_name": "1. ResStock Arguments",
     "group_steps": [
       {
-        "name": "1. Simulation Controls",
+        "name": "1. ResStock Arguments",
+        "dependencies": "",
         "measures": [
-          "ResidentialSimulationControls"
+          "ResStockArguments"
         ]
       }
     ]
   },
   {
-    "group_name": "2. Location",
+    "group_name": "2. Build Residential HPXML",
     "group_steps": [
       {
-        "name": "1. Location",
+        "name": "1. Build Residential HPXML",
         "dependencies": "",
         "measures": [
-          "ResidentialLocation"
+          "BuildResidentialHPXML"
         ]
       }
     ]
   },
   {
-    "group_name": "3. Schedules",
+    "group_name": "3. HPXML to OpenStudio",
     "group_steps": [
       {
-        "name": "1. Schedules",
+        "name": "1. HPXML to OpenStudio",
         "dependencies": "",
         "measures": [
-          "ResidentialScheduleGenerator"
-        ]
-      }
-    ]
-  },
-  {
-    "group_name": "4. Geometry",
-    "group_steps": [
-      {
-        "name": "1. Geometry - Create Single-Family Detached (or Single-Family Attached or Multifamily)",
-        "dependencies": "",
-        "measures": [
-          "ResidentialGeometryCreateSingleFamilyDetached",
-          "ResidentialGeometryCreateSingleFamilyAttached",
-          "ResidentialGeometryCreateMultifamily"
-        ]
-      },
-      {
-        "name": "2. Door Area",
-        "dependencies": "",
-        "measures": [
-          "ResidentialGeometryDoorArea"
-        ]
-      },
-      {
-        "name": "3. Window/Skylight Area",
-        "dependencies": "",
-        "measures": [
-          "ResidentialGeometryWindowSkylightArea"
-        ]
-      }
-    ]
-  },
-  {
-    "group_name": "5. Envelope Constructions",
-    "group_steps": [
-      {
-        "name": "1. Unfinished Attic (or Finished Roof)",
-        "dependencies": "",
-        "measures": [
-          "ResidentialConstructionsUnfinishedAttic",
-          "ResidentialConstructionsFinishedRoof"
-        ]
-      },
-      {
-        "name": "2. Wood Stud Walls (or Double Stud, CMU, SIP, etc.)",
-        "dependencies": "",
-        "measures": [
-          "ResidentialConstructionsWallsWoodStud",
-          "ResidentialConstructionsWallsDoubleWoodStud",
-          "ResidentialConstructionsWallsSteelStud",
-          "ResidentialConstructionsWallsCMU",
-          "ResidentialConstructionsWallsICF",
-          "ResidentialConstructionsWallsSIP",
-          "ResidentialConstructionsWallsGeneric"
-        ]
-      },
-      {
-        "name": "3. Slab (or Finished Basement, Unfinished Basement, Crawlspace, Pier & Beam)",
-        "dependencies": "",
-        "measures": [
-          "ResidentialConstructionsSlab",
-          "ResidentialConstructionsUnfinishedBasement",
-          "ResidentialConstructionsFinishedBasement",
-          "ResidentialConstructionsCrawlspace",
-          "ResidentialConstructionsPierBeam"
-        ]
-      },
-      {
-        "name": "4. Floors",
-        "dependencies": "",
-        "measures": [
-          "ResidentialConstructionsFloors"
-        ]
-      },
-      {
-        "name": "5. Windows/Skylights",
-        "dependencies": "Window/Skylight Area, Location",
-        "measures": [
-          "ResidentialConstructionsWindowsSkylights"
-        ]
-      },
-      {
-        "name": "6. Doors",
-        "dependencies": "Door Area",
-        "measures": [
-          "ResidentialConstructionsDoors"
-        ]
-      }
-    ]
-  }, 
-  {
-    "group_name": "6. Domestic Hot Water",
-    "group_steps": [
-      {
-        "name": "1. Water Heater - Tank (or Tankless, Heat Pump, etc.)",
-        "dependencies": "",
-        "measures": [
-          "ResidentialHotWaterHeaterTank",
-          "ResidentialHotWaterHeaterTankless",
-          "ResidentialHotWaterHeaterHeatPump"
-        ]
-      },
-      {
-        "name": "2. Hot Water Fixtures",
-        "dependencies": "Water Heater",
-        "measures": [
-          "ResidentialHotWaterFixtures"
-        ]
-      },
-      {
-        "name": "3. Hot Water Distribution",
-        "dependencies": "Hot Water Fixtures, Location",
-        "measures": [
-          "ResidentialHotWaterDistribution"
-        ]
-      },
-      {
-        "name": "4. Solar Hot Water",
-        "dependencies": "Water Heater, Location",
-        "measures": [
-          "ResidentialHotWaterSolar"
-        ]
-      }
-    ]
-  },
-  {
-    "group_name": "7. HVAC",
-    "group_steps": [
-      {
-        "name": "1. Central Air Source Heat Pump (or AC/Furnace, Boiler, MSHP, etc.)",
-        "dependencies": "",
-        "measures": [
-          "ResidentialHVACAirSourceHeatPumpSingleSpeed",     
-          "ResidentialHVACAirSourceHeatPumpTwoSpeed",
-          "ResidentialHVACAirSourceHeatPumpVariableSpeed",
-          "ResidentialHVACBoiler",
-          "ResidentialHVACCentralAirConditionerSingleSpeed", 
-          "ResidentialHVACCentralAirConditionerTwoSpeed",
-          "ResidentialHVACCentralAirConditionerVariableSpeed",
-          "ResidentialHVACElectricBaseboard",
-          "ResidentialHVACFurnace",
-          "ResidentialHVACGroundSourceHeatPumpVerticalBore",
-          "ResidentialHVACMiniSplitHeatPump",
-          "ResidentialHVACRoomAirConditioner",
-          "ResidentialHVACUnitHeater",
-          "ResidentialHVACCentralSystemBoilerBaseboards",
-          "ResidentialHVACCentralSystemFanCoil",
-          "ResidentialHVACCentralSystemPTAC"
-        ]
-      },     
-      {
-        "name": "2. Heating Setpoint",
-        "dependencies": "HVAC Equipment, Location",
-        "measures": [
-          "ResidentialHVACHeatingSetpoints"
-        ]
-      },
-      {
-        "name": "3. Cooling Setpoint",
-        "dependencies": "HVAC Equipment, Location",
-        "measures": [
-          "ResidentialHVACCoolingSetpoints"
-        ]
-      },
-      {
-        "name": "4. Ceiling Fan",
-        "dependencies": "Cooling Setpoint",
-        "measures": [
-          "ResidentialHVACCeilingFan"
-        ]
-      },
-      {
-        "name": "5. Dehumidifier",
-        "dependencies": "HVAC Equipment",
-        "measures": [
-          "ResidentialHVACDehumidifier"
-        ]
-      }
-    ]
-  },
-  {
-    "group_name": "8. Major Appliances",
-    "group_steps": [
-      {
-        "name": "1. Refrigerator",
-        "dependencies": "",
-        "measures": [
-          "ResidentialApplianceRefrigerator"
-        ]
-      },
-      {
-        "name": "2. Clothes Washer",
-        "dependencies": "Water Heater, Location",
-        "measures": [
-          "ResidentialApplianceClothesWasher"
-        ]
-      },
-      {
-        "name": "3. Clothes Dryer",
-        "dependencies": "Clothes Washer",
-        "measures": [
-          "ResidentialApplianceClothesDryer"
-        ]
-      },
-      {
-        "name": "4. Dishwasher",
-        "dependencies": "Water Heater, Location",
-        "measures": [
-          "ResidentialApplianceDishwasher"
-        ]
-      },
-      {
-        "name": "5. Cooking Range",
-        "dependencies": "",
-        "measures": [
-          "ResidentialApplianceCookingRange"
-        ]
-      }
-    ]
-  },
-  {
-    "group_name": "9. Interior Lighting",
-    "group_steps": [
-      {
-        "name": "1. Lighting (finished spaces)",
-        "dependencies": "Location",
-        "measures": [
-          "ResidentialLightingInterior"
-        ]
-      }
-    ]
-  },
-  {
-    "group_name": "10. Other Lighting",
-    "group_steps": [
-      {
-        "name": "1. Lighting (garage and exterior)",
-        "dependencies": "Location",
-        "measures": [
-          "ResidentialLightingOther"
-        ]
-      }
-    ]
-  },
-  {
-    "group_name": "11. Misc Loads",
-    "group_steps": [
-      {
-        "name": "1. Plug Loads",
-        "dependencies": "",
-        "measures": [
-          "ResidentialMiscPlugLoads"
-        ]
-      },
-      {
-        "name": "2. Large, Uncommon Loads",
-        "dependencies": "",
-        "measures": [
-          "ResidentialMiscLargeUncommonLoads"
-        ]
-      }
-    ]
-  },
-  {
-    "group_name": "12. Airflow",
-    "group_steps": [
-      {
-        "name": "1. Airflow",
-        "dependencies": "Location, HVAC Equipment, Clothes Dryer",
-        "measures": [
-          "ResidentialAirflow"
-        ]
-      }
-    ]
-  },
-  {
-    "group_name": "13. Sizing",
-    "group_steps": [
-      {
-        "name": "1. HVAC Sizing",
-        "dependencies": "(lots of measures...)",
-        "measures": [
-          "ResidentialHVACSizing"
-        ]
-      }
-    ]
-  },
-  {
-    "group_name": "14. Photovoltaics",
-    "group_steps": [
-      {
-        "name": "1. Photovoltaics",
-        "measures": [
-          "ResidentialPhotovoltaics"
-        ]
-      }
-    ]
-  },
-  {
-    "group_name": "15. Demand Response",
-    "group_steps": [
-      {
-        "name": "1. Demand Response",
-        "measures": [
-          "ResidentialDemandResponse"
+          "HPXMLtoOpenStudio"
         ]
       }
     ]

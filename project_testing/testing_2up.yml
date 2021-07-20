@@ -1,0 +1,66 @@
+schema_version: '0.3'
+buildstock_directory: ../../resstock # Relative to this file or absolute
+project_directory: project_testing # Relative to buildstock_directory
+output_directory: outputs
+# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+
+sampler:
+  type: residential_quota
+  args:
+    n_datapoints: 4
+
+workflow_generator:
+  type: residential_hpxml
+  args:
+    build_existing_model:
+      simulation_control_timestep: 60
+      simulation_control_run_period_begin_month: 1
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 12
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2007
+      debug: false
+
+    simulation_output_report:
+      timeseries_frequency: hourly
+      include_timeseries_fuel_consumptions: true
+      include_timeseries_end_use_consumptions: true
+      include_timeseries_hot_water_uses: true
+      include_timeseries_total_loads: true
+      include_timeseries_component_loads: true
+      include_timeseries_unmet_loads: true
+      include_timeseries_zone_temperatures: true
+      include_timeseries_airflows: true
+      include_timeseries_weather: true
+
+baseline:
+  n_buildings_represented: 110000000
+
+upgrades:
+  - upgrade_name: Triple-Pane Windows
+    options:
+      - option: Windows|Low-E, Triple, Non-metal, Air, L-Gain
+        costs:
+          - value: 45.77
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+
+  - upgrade_name: R-13 Wall Insulation
+    options:
+      - option: Insulation Wall|Wood Stud, R-13
+        apply_logic: Insulation Wall|Wood Stud, Uninsulated
+        costs:
+          - value: 2.21
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+
+eagle:
+  n_jobs: 2
+  minutes_per_sim: 1
+  account: <account you are authorized to use>
+  sampling:
+    time: 10
+  postprocessing:
+    time: 10
+    n_workers: 1

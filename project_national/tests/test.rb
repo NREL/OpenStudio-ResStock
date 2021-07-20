@@ -1,8 +1,7 @@
-require_relative '../../test/minitest_helper'
-require 'minitest/autorun'
-$LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', '..')
-load 'Rakefile'
-require 'json'
+# frozen_string_literal: true
+
+require_relative '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
+require_relative '../../test/integrity_checks'
 
 class TestProjectNational < MiniTest::Test
   def test_housing_characteristics

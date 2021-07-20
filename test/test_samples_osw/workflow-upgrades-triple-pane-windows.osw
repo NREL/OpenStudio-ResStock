@@ -1,0 +1,57 @@
+{
+  "measure_paths": [
+    "../../../measures",
+    "../../../resources/hpxml-measures"
+  ],
+  "steps": [
+    {
+      "measure_dir_name": "BuildExistingModel",
+      "arguments": {
+        "building_id": "1",
+        "workflow_json": "measure-info.json",
+        "simulation_control_timestep": 60,
+        "simulation_control_run_period_begin_month": 1,
+        "simulation_control_run_period_begin_day_of_month": 1,
+        "simulation_control_run_period_end_month": 12,
+        "simulation_control_run_period_end_day_of_month": 31,
+        "simulation_control_run_period_calendar_year": 2007,
+        "debug": false
+      }
+    },
+    {
+      "measure_dir_name": "ApplyUpgrade",
+      "arguments": {
+        "run_measure": 1,
+        "upgrade_name": "Triple-Pane Windows",
+        "option_1": "Windows|Low-E, Triple, Non-metal, Air, L-Gain",
+        "option_1_lifetime": 30,
+        "option_1_cost_1_value": 45.77,
+        "option_1_cost_1_multiplier": "Window Area (ft^2)"
+      }
+    },
+    {
+      "measure_dir_name": "SimulationOutputReport",
+      "arguments": {
+        "output_format": "csv",
+        "timeseries_frequency": "none",
+        "include_timeseries_fuel_consumptions": "false",
+        "include_timeseries_end_use_consumptions": "false",
+        "include_timeseries_hot_water_uses": "false",
+        "include_timeseries_total_loads": "false",
+        "include_timeseries_component_loads": "false",
+        "include_timeseries_unmet_loads": "false",
+        "include_timeseries_zone_temperatures": "false",
+        "include_timeseries_airflows": "false",
+        "include_timeseries_weather": "false"
+      }
+    },
+    {
+      "measure_dir_name": "UpgradeCosts"
+    }
+  ],
+  "run_options": {
+    "fast": true,
+    "skip_expand_objects": true,
+    "skip_energyplus_preprocess": true
+  }
+}
